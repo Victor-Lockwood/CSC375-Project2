@@ -10,6 +10,8 @@ public class TestChamberHandler {
     //don't get crazy numbers.
     final int MAX_AGE = 65;
 
+    final int MIN_AGE = 18;
+
     //Progress should be out of 100.
     final int MAX_PROGRESS = 100;
 
@@ -26,7 +28,7 @@ public class TestChamberHandler {
     public TestChamber generateRandomTestChamber() {
         String name = pickRandomName();
         int testSubjectId = ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE);
-        int testSubjectAge = ThreadLocalRandom.current().nextInt(MAX_AGE);
+        int testSubjectAge = ThreadLocalRandom.current().nextInt(MIN_AGE, MAX_AGE);
         String testSubjectName = pickRandomName();
         int testCompletionStatus = ThreadLocalRandom.current().nextInt(MAX_PROGRESS);
         boolean isTesting = ThreadLocalRandom.current().nextBoolean();
