@@ -1,7 +1,17 @@
 import CustomObjects.TestChamber;
 import CustomObjects.TestChamberHandler;
+import CustomObjects.Worker;
 
 public class ApertureTestSubjectMaintenance {
+
+
+    /**
+     * Total number of CPUs
+     */
+    static final int NCPUS = Runtime.getRuntime().availableProcessors();
+
+    /** Runs start with two threads, increasing by two through max */
+    static final int DEFAULT_MAX_THREADS = Math.max(4, NCPUS + NCPUS/2);
 
     public static void main(String[] args) throws Exception {
 
@@ -10,6 +20,16 @@ public class ApertureTestSubjectMaintenance {
         testChamberHandler.initializeTestChambers(10);
 
         printChamberStats(testChamberHandler.head);
+
+        System.out.println("Total threads: " + NCPUS);
+
+        Worker[] workers = new Worker[NCPUS];
+
+        for(int i = 0; i < NCPUS; i++) {
+            Worker worker = new Worker();
+            workers[i] = worker;
+            worker.start();
+        }
     }
 
     /**
@@ -28,5 +48,7 @@ public class ApertureTestSubjectMaintenance {
 
         if (currentChamber.nextChamber != null)
             printChamberStats(currentChamber.nextChamber);
+
+
     }
 }
