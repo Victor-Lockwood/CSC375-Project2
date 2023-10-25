@@ -15,15 +15,16 @@ public class ApertureTestSubjectMaintenance {
 
     public static void main(String[] args) throws Exception {
         System.out.println("Total threads: " + NCPUS);
-        TestChamberHandler testChamberHandler = new TestChamberHandler(2);
+        TestChamberHandler testChamberHandler = new TestChamberHandler(NCPUS);
 
         testChamberHandler.initializeTestChambers(10);
 
         //Fire it up!
         testChamberHandler.start();
 
-        //Wait til everything's done it's stuff
+        //Wait til everything's done its stuff
         testChamberHandler.awaitDone();
+        Thread.sleep(500);
 
         //Let's see what we've got
         printChamberStats(testChamberHandler.head);

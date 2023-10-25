@@ -10,6 +10,7 @@ public class Worker extends Thread {
 
     public void run() {
         createAndInsertChamber();
+        chamberHandler.threadFinished();
     }
 
     //Pattern I found here: https://www.linkedin.com/pulse/concurrent-simple-data-structure-danil-tolonbekov
@@ -43,7 +44,6 @@ public class Worker extends Thread {
                     if(currentChamber.testSubjectId < testChamberToAdd.testSubjectId) {
                         currentChamber.nextChamber = testChamberToAdd;
 
-                        System.out.println("Added chamber.");
                         foundNextSpot = true;
                     } else {
                         testChamberToAdd.nextChamber = currentChamber;
@@ -51,7 +51,6 @@ public class Worker extends Thread {
                         //We don't need to try to lock it again because it should already be locked as currentChamber
                         this.chamberHandler.head = testChamberToAdd;
 
-                        System.out.println("Added chamber.  Replaced head.");
                         foundNextSpot = true;
                     }
                 //Add it in if we found the right spot.
@@ -61,7 +60,6 @@ public class Worker extends Thread {
                     testChamberToAdd.nextChamber = currentChamber.nextChamber;
                     currentChamber.nextChamber = testChamberToAdd;
 
-                    System.out.println("Added chamber.");
                     foundNextSpot = true;
                 }
             } finally {
@@ -77,8 +75,6 @@ public class Worker extends Thread {
             }
 
         }
-
-        chamberHandler.threadFinished();
     }
 
     //Pattern I found here: https://www.linkedin.com/pulse/concurrent-simple-data-structure-danil-tolonbekov
