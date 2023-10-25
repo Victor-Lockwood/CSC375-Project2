@@ -14,22 +14,21 @@ public class ApertureTestSubjectMaintenance {
     static final int DEFAULT_MAX_THREADS = Math.max(4, NCPUS + NCPUS/2);
 
     public static void main(String[] args) throws Exception {
-
-        TestChamberHandler testChamberHandler = new TestChamberHandler();
+        System.out.println("Total threads: " + NCPUS);
+        TestChamberHandler testChamberHandler = new TestChamberHandler(2);
 
         testChamberHandler.initializeTestChambers(10);
 
+        //Fire it up!
+        testChamberHandler.start();
+
+        //Wait til everything's done it's stuff
+        testChamberHandler.awaitDone();
+
+        //Let's see what we've got
         printChamberStats(testChamberHandler.head);
 
-        System.out.println("Total threads: " + NCPUS);
 
-        Worker[] workers = new Worker[NCPUS];
-
-        for(int i = 0; i < NCPUS; i++) {
-            Worker worker = new Worker();
-            workers[i] = worker;
-            worker.start();
-        }
     }
 
     /**

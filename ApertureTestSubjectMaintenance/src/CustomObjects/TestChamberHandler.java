@@ -1,5 +1,6 @@
 package CustomObjects;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class TestChamberHandler {
@@ -20,6 +21,52 @@ public class TestChamberHandler {
     String[] FIRST_NAMES = {"BILLY", "BOB", "CAROLINE", "CAVE", "FACT", "SPACE", "WHEATLEY", "CHELL", "KEVIN", "RICK", "VICTOR", "ROBO", "CYBER", "MECH", "BOLT", "CIRCUIT", "STEEL", "PIXEL", "NANO", "SPARK", "TECH", "GIZMO", "VOLT", "RUSTY", "ASTRID", "ZARA", "REX", "ORION", "LEXI", "DROIDA", "NOVA"};
     String[] LAST_NAMES = {"CORE", "SPHERE", "JOHNSON", "LOCKWOOD", "ECHO", "MACHINA", "CIRCUITRY", "STEELHEART", "GEARSMITH", "BOLTSTRIDER", "WIREDON", "PIXELWELD", "NANOTECH", "SPARKFORGE", "CYBERLOCK", "GIZMOTECH", "VOLTSTREAM", "RUSTON", "ANDROSON", "ZARATECH", "REXTRON", "ORIONIX", "LEXINGTON", "DROIDSTEIN", "NOVAFLUX"};
 
+    final Worker[] workers;
+
+    final CountDownLatch finished;
+
+    public TestChamberHandler(int numberOfWorkers) {
+        this.workers = new Worker[numberOfWorkers];
+        finished = new CountDownLatch(numberOfWorkers - 1);
+
+        for(int i = 0; i<numberOfWorkers; i++) {
+            Worker worker = new Worker(this);
+            this.workers[i] = worker;
+        }
+    }
+
+    /**
+     * Start all our threads.
+     */
+    public void start() {
+        for(Worker worker : workers) {
+            worker.start();
+        }
+    }
+
+    /**
+     * Decrement our countdown latch.
+     */
+    public void threadFinished() {
+        finished.countDown();
+    }
+
+    /**
+     * Close up shop.
+     */
+    public void shutdown() {
+        for(Worker worker : workers) {
+            worker.interrupt();
+        }
+    }
+
+    /**
+     * Wait til the countdown latch has released then the code calling this can resume.
+     * @throws InterruptedException
+     */
+    public void awaitDone() throws InterruptedException {
+        finished.await();
+    }
 
     /**
      * Create a test chamber using random data.
@@ -53,8 +100,8 @@ public class TestChamberHandler {
      * the head for our "main" list.
      * @param testChamberToAdd The test chamber to add to the list.
      */
-    //TODO: This is NOT the parallel version.  Use this ONLY for initialization.
-    public void addChamberToList(TestChamber testChamberToAdd) {
+    //TODO: This is NOT the parallel version.
+    private void addChamberToList(TestChamber testChamberToAdd) {
         if(this.head == null) {
             this.head = testChamberToAdd;
             return;
