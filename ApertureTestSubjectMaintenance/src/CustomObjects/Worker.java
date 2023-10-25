@@ -31,7 +31,11 @@ public class Worker extends Thread {
 
             //Set these references so we can unlock them properly later
             lockedChamber1 = currentChamber;
-            if(currentChamber.nextChamber != null) lockedChamber2 = currentChamber.nextChamber;
+            if(currentChamber.nextChamber != null) {
+                lockedChamber2 = currentChamber.nextChamber;
+            } else {
+                lockedChamber2 = null;
+            }
 
             try {
                 //Either at the end of the list or the head is the only guy in our list
