@@ -27,7 +27,7 @@ public class TestChamberHandler {
 
     public TestChamberHandler(int numberOfWorkers) {
         this.workers = new Worker[numberOfWorkers];
-        finished = new CountDownLatch(numberOfWorkers - 1);
+        finished = new CountDownLatch(numberOfWorkers);
 
         for(int i = 0; i<numberOfWorkers; i++) {
             Worker worker = new Worker(this);

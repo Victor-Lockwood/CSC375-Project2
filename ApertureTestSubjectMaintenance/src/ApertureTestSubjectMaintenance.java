@@ -24,7 +24,6 @@ public class ApertureTestSubjectMaintenance {
 
         //Wait til everything's done its stuff
         testChamberHandler.awaitDone();
-        Thread.sleep(500);
 
         //Let's see what we've got
         printChamberStats(testChamberHandler.head);
