@@ -20,61 +20,71 @@ public class Worker extends Thread {
      */
     public void createAndInsertChamber() {
         TestChamber testChamberToAdd = this.chamberHandler.generateRandomTestChamber();
-        TestChamber lockedChamber1 = null;
-        TestChamber lockedChamber2 = null;
 
         //Not shared - shouldn't need to be atomic or anything
-        Boolean foundNextSpot = false;
+        boolean foundNextSpot = false;
         TestChamber currentChamber = this.chamberHandler.head;
+        TestChamber nextChamber = null;
+
+        currentChamber.lock.lock();
+
+        if(currentChamber.nextChamber != null) {
+            nextChamber = currentChamber.nextChamber;
+            nextChamber.lock.lock();
+        }
 
         while(!foundNextSpot) {
-            lockPair(currentChamber);
 
-            //Set these references so we can unlock them properly later
-            lockedChamber1 = currentChamber;
-            if(currentChamber.nextChamber != null) {
-                lockedChamber2 = currentChamber.nextChamber;
-            } else {
-                lockedChamber2 = null;
-            }
+            //Either at the end of the list or the head is the only guy in our list
 
-            try {
-                //Either at the end of the list or the head is the only guy in our list
-                if(currentChamber.nextChamber == null){
-                    if(currentChamber.testSubjectId < testChamberToAdd.testSubjectId) {
-                        currentChamber.nextChamber = testChamberToAdd;
-
-                        foundNextSpot = true;
-                    } else {
-                        testChamberToAdd.nextChamber = currentChamber;
-                        //If we get in here, this was the original head and nothing else was on the list
-                        //We don't need to try to lock it again because it should already be locked as currentChamber
-                        this.chamberHandler.head = testChamberToAdd;
-
-                        foundNextSpot = true;
-                    }
-                //Add it in if we found the right spot.
-                } else if((currentChamber.testSubjectId < testChamberToAdd.testSubjectId) &&
-                   (currentChamber.nextChamber.testSubjectId > testChamberToAdd.testSubjectId)) {
-
-                    testChamberToAdd.nextChamber = currentChamber.nextChamber;
+            if(currentChamber.nextChamber == null){
+                if(currentChamber.testSubjectId < testChamberToAdd.testSubjectId) {
                     currentChamber.nextChamber = testChamberToAdd;
 
                     foundNextSpot = true;
+                } else {
+                    testChamberToAdd.nextChamber = currentChamber;
+                    //If we get in here, this was the original head and nothing else was on the list
+                    //We don't need to try to lock it again because it should already be locked as currentChamber
+                    this.chamberHandler.head = testChamberToAdd;
+
+                    foundNextSpot = true;
                 }
-            } finally {
-                lockedChamber1.lock.unlock();
-                if(lockedChamber2 != null) lockedChamber2.lock.unlock();
+            //Add it in if we found the right spot.
+            } else if((currentChamber.testSubjectId < testChamberToAdd.testSubjectId) &&
+               (currentChamber.nextChamber.testSubjectId > testChamberToAdd.testSubjectId)) {
+
+                testChamberToAdd.nextChamber = currentChamber.nextChamber;
+                currentChamber.nextChamber = testChamberToAdd;
+
+                foundNextSpot = true;
             }
 
-            if(currentChamber.nextChamber != null) {
-                currentChamber = currentChamber.nextChamber;
+            //Pass hands
+            if(!foundNextSpot) {
+                TestChamber tempChamber = currentChamber;
+                currentChamber = nextChamber;
+                tempChamber.lock.unlock();
+
+                //Grab the next chamber in line
+                if(currentChamber.nextChamber != null) {
+                    nextChamber = currentChamber.nextChamber;
+                    nextChamber.lock.lock();
+                } else {
+                    nextChamber = null;
+                }
+
+            //We found a spot and inserted the new chamber - unlock and leave
             } else {
-                //Something went wrong if we get here
-                break;
+                currentChamber.lock.unlock();
+                if(nextChamber != null)
+                    nextChamber.lock.unlock();
             }
 
         }
+
+        //if(lockedChamber1.lock.isHeldByCurrentThread()) lockedChamber1.lock.unlock();
+        //if(lockedChamber2 != null && lockedChamber2.lock.isHeldByCurrentThread()) lockedChamber2.lock.unlock();
     }
 
     //Pattern I found here: https://www.linkedin.com/pulse/concurrent-simple-data-structure-danil-tolonbekov
