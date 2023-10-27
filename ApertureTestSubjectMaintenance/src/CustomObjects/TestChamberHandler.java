@@ -103,6 +103,7 @@ public class TestChamberHandler {
     //TODO: This is NOT the parallel version.
     private void addChamberToList(TestChamber testChamberToAdd) {
         if(this.head == null) {
+            testChamberToAdd.testSubjectId = 0; //See if we can save ourselves some heartache here
             this.head = testChamberToAdd;
             return;
         }

@@ -18,73 +18,74 @@ public class Worker extends Thread {
     /**
      * Main code for writers to add chambers willy-nilly.
      */
-    public void createAndInsertChamber() {
-        TestChamber testChamberToAdd = this.chamberHandler.generateRandomTestChamber();
+    private void createAndInsertChamber() {
+        this.chamberHandler.head.lock.lock();
+        TestChamber testChamberToAdd = chamberHandler.generateRandomTestChamber();
+        //testChamberToAdd.lock.lock();
 
-        //Not shared - shouldn't need to be atomic or anything
-        boolean foundNextSpot = false;
-        TestChamber currentChamber = this.chamberHandler.head;
-        TestChamber nextChamber = null;
-
-        currentChamber.lock.lock();
-
-        if(currentChamber.nextChamber != null) {
-            nextChamber = currentChamber.nextChamber;
-            nextChamber.lock.lock();
+        if(this.chamberHandler.head.nextChamber == null) {
+            this.chamberHandler.head.nextChamber = testChamberToAdd;
+            this.chamberHandler.head.lock.unlock();
+            ///testChamberToAdd.lock.unlock();
+            return;
+        } else {
+            this.chamberHandler.head.nextChamber.lock.lock();
         }
 
-        while(!foundNextSpot) {
+        addChamberToList(this.chamberHandler.head, testChamberToAdd);
+    }
 
-            //Either at the end of the list or the head is the only guy in our list
+    /**
+     * Internal method for handling adding on beyond the head.
+     * @param currentChamber Current chamber we're looking at in the list.
+     * @param testChamberToAdd Chamber we're looking to add to the list.
+     */
+    private void addChamberToList(TestChamber currentChamber, TestChamber testChamberToAdd) {
 
-            if(currentChamber.nextChamber == null){
-                if(currentChamber.testSubjectId < testChamberToAdd.testSubjectId) {
-                    currentChamber.nextChamber = testChamberToAdd;
+        //Test chamber is the new head.
+        if(currentChamber.testSubjectId > testChamberToAdd.testSubjectId) {
+            testChamberToAdd.nextChamber = currentChamber;
 
-                    foundNextSpot = true;
-                } else {
-                    testChamberToAdd.nextChamber = currentChamber;
-                    //If we get in here, this was the original head and nothing else was on the list
-                    //We don't need to try to lock it again because it should already be locked as currentChamber
-                    this.chamberHandler.head = testChamberToAdd;
+            if(currentChamber == this.chamberHandler.head)
+                this.chamberHandler.head = testChamberToAdd; //Update current head if applicable
 
-                    foundNextSpot = true;
-                }
-            //Add it in if we found the right spot.
-            } else if((currentChamber.testSubjectId < testChamberToAdd.testSubjectId) &&
-               (currentChamber.nextChamber.testSubjectId > testChamberToAdd.testSubjectId)) {
-
-                testChamberToAdd.nextChamber = currentChamber.nextChamber;
-                currentChamber.nextChamber = testChamberToAdd;
-
-                foundNextSpot = true;
-            }
-
-            //Pass hands
-            if(!foundNextSpot) {
-                TestChamber tempChamber = currentChamber;
-                currentChamber = nextChamber;
-                tempChamber.lock.unlock();
-
-                //Grab the next chamber in line
-                if(currentChamber.nextChamber != null) {
-                    nextChamber = currentChamber.nextChamber;
-                    nextChamber.lock.lock();
-                } else {
-                    nextChamber = null;
-                }
-
-            //We found a spot and inserted the new chamber - unlock and leave
-            } else {
-                currentChamber.lock.unlock();
-                if(nextChamber != null)
-                    nextChamber.lock.unlock();
-            }
-
+            //testChamberToAdd.lock.unlock();
+            currentChamber.lock.unlock();
+            if(currentChamber.nextChamber != null) currentChamber.nextChamber.lock.unlock();
+            return;
         }
 
-        //if(lockedChamber1.lock.isHeldByCurrentThread()) lockedChamber1.lock.unlock();
-        //if(lockedChamber2 != null && lockedChamber2.lock.isHeldByCurrentThread()) lockedChamber2.lock.unlock();
+        //Test chamber has a greater ID value and head is the end of the list
+        if (currentChamber.nextChamber == null) {
+            currentChamber.nextChamber = testChamberToAdd;
+
+            //testChamberToAdd.lock.unlock();
+            currentChamber.lock.unlock();
+            return;
+        }
+
+        //Current chamber's next node ID is > than testChamberToAdd's
+        //Current chamber's next pointer will point to testChamberToAdd,
+        //testChamberToAdd's next pointer points to head's original next
+        if (currentChamber.nextChamber.testSubjectId > testChamberToAdd.testSubjectId) {
+            testChamberToAdd.nextChamber = currentChamber.nextChamber;
+            currentChamber.nextChamber = testChamberToAdd;
+
+            //testChamberToAdd.lock.unlock();
+            currentChamber.lock.unlock();
+            testChamberToAdd.nextChamber.lock.unlock();
+            return;
+        }
+
+        //Current chamber's next node's ID is < testChamberToAdd's,
+        //recursively call passing in the next node as the head
+        if(currentChamber.nextChamber.testSubjectId < testChamberToAdd.testSubjectId) {
+            if(currentChamber.nextChamber.nextChamber != null) currentChamber.nextChamber.nextChamber.lock.lock();
+            TestChamber nextInLine = currentChamber.nextChamber;
+            currentChamber.lock.unlock();
+
+            addChamberToList(nextInLine, testChamberToAdd);
+        }
     }
 
     //Pattern I found here: https://www.linkedin.com/pulse/concurrent-simple-data-structure-danil-tolonbekov

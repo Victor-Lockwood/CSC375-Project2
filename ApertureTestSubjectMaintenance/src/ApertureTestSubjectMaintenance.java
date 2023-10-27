@@ -26,17 +26,20 @@ public class ApertureTestSubjectMaintenance {
         testChamberHandler.awaitDone();
 
         //Let's see what we've got
-        printChamberStats(testChamberHandler.head);
+        printChamberStats(testChamberHandler.head, 0);
 
 
+        //System.out.println("placeholder");
     }
 
     /**
      * Prints stats down the linked list of test chambers starting at the given chamber.
      * @param currentChamber The TestChamber to start with.
      */
-    public static void printChamberStats(TestChamber currentChamber) {
+    public static void printChamberStats(TestChamber currentChamber, int counter) {
+        counter++;
         System.out.println(
+                "COUNT: " + counter + "\n" +
                 "Generated test chamber with following data\n" +
                         "Name:            " + currentChamber.subjectNameHere + "\n" +
                         "Age:             " + currentChamber.age + "\n" +
@@ -46,7 +49,8 @@ public class ApertureTestSubjectMaintenance {
         );
 
         if (currentChamber.nextChamber != null)
-            printChamberStats(currentChamber.nextChamber);
+            printChamberStats(currentChamber.nextChamber, counter);
+
 
 
     }
