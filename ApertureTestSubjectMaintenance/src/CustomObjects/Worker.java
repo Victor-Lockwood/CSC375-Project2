@@ -6,9 +6,9 @@ public class Worker extends Thread {
 
     final TestChamberHandler chamberHandler;
 
-    int completedWrites = 0;
+    public int completedWrites = 0;
 
-    int completedReads = 0;
+    public int completedReads = 0;
 
     final int MAX_WRITES;
 
@@ -20,40 +20,48 @@ public class Worker extends Thread {
     public void run() {
         boolean isWrite = ThreadLocalRandom.current().nextInt(10) >= 8;
 
-        while((completedWrites + completedReads) < 5) {
-            createAndInsertChamber();
-            completedWrites++;
+        while((completedWrites + completedReads) < 20) {
 
-/*            if(isWrite) {
+            if(isWrite && (completedWrites < MAX_WRITES)) {
                 createAndInsertChamber();
                 completedWrites++;
             } else {
-                readRandomChamber();
+                int chamberId = ThreadLocalRandom.current().nextInt(chamberHandler.MAX_ID);
+                traverseList(chamberId);
                 completedReads++;
             }
 
-            isWrite = ThreadLocalRandom.current().nextInt(100) >= 80;*/
+            isWrite = ThreadLocalRandom.current().nextInt(100) >= 80;
         }
         chamberHandler.threadFinished();
     }
 
-    private void readRandomChamber() {
-        int chamberId = ThreadLocalRandom.current().nextInt(chamberHandler.MAX_ID);
+    private boolean traverseList(int id) {
+        long stamp = this.chamberHandler.head.lock.readLock();
+        TestChamber currentChamber = this.chamberHandler.head;
+        boolean found = false;
+        boolean notPresent = false;
 
-        while(traverseList(chamberId, chamberHandler.head));
-    }
+            while (!found && !notPresent) {
+                if (currentChamber.testSubjectId == id) {
+                    int x = currentChamber.age;
+                    String name = currentChamber.subjectNameHere;
 
-    private boolean traverseList(int id, TestChamber currentChamber) {
-        if(currentChamber.testSubjectId == id) {
-            int x = currentChamber.age;
-            String name = currentChamber.subjectNameHere;
-            return true;
-        } else if(currentChamber.testSubjectId > id) {
-            return false;
-        } else if(currentChamber.nextChamber != null) {
-            traverseList(id, currentChamber.nextChamber);
-        }
-        return false;
+                    currentChamber.lock.unlock(stamp);
+                    found = true;
+                } else if (currentChamber.testSubjectId > id || currentChamber.nextChamber == null) {
+                    currentChamber.lock.unlock(stamp);
+                    notPresent = true;
+                } else if (currentChamber.nextChamber != null) {
+                    long stamp2 = currentChamber.nextChamber.lock.readLock();
+                    TestChamber nextInLine = currentChamber.nextChamber;
+                    currentChamber.lock.unlock(stamp);
+                    stamp = stamp2;
+                    currentChamber = nextInLine;
+                }
+            }
+
+        return found;
     }
 
     //***** WRITE CODE *****
@@ -62,17 +70,17 @@ public class Worker extends Thread {
      * Main code for writers to add chambers willy-nilly.
      */
     private void createAndInsertChamber() {
-        this.chamberHandler.head.lock.lock();
+        this.chamberHandler.head.lock.writeLock();
         TestChamber testChamberToAdd = chamberHandler.generateRandomTestChamber(false);
         //testChamberToAdd.lock.lock();
 
         if(this.chamberHandler.head.nextChamber == null) {
             this.chamberHandler.head.nextChamber = testChamberToAdd;
-            this.chamberHandler.head.lock.unlock();
+            this.chamberHandler.head.lock.tryUnlockWrite();
 
             return;
         } else {
-            this.chamberHandler.head.nextChamber.lock.lock();
+            this.chamberHandler.head.nextChamber.lock.writeLock();
         }
 
         addChamberToList(this.chamberHandler.head, testChamberToAdd);
@@ -92,8 +100,8 @@ public class Worker extends Thread {
             if(currentChamber == this.chamberHandler.head)
                 this.chamberHandler.head = testChamberToAdd; //Update current head if applicable
 
-            currentChamber.lock.unlock();
-            if(currentChamber.nextChamber != null) currentChamber.nextChamber.lock.unlock();
+            currentChamber.lock.tryUnlockWrite();
+            if(currentChamber.nextChamber != null) currentChamber.nextChamber.lock.tryUnlockWrite();
             return;
         }
 
@@ -101,7 +109,7 @@ public class Worker extends Thread {
         if (currentChamber.nextChamber == null) {
             currentChamber.nextChamber = testChamberToAdd;
 
-            currentChamber.lock.unlock();
+            currentChamber.lock.tryUnlockWrite();
             return;
         }
 
@@ -112,17 +120,17 @@ public class Worker extends Thread {
             testChamberToAdd.nextChamber = currentChamber.nextChamber;
             currentChamber.nextChamber = testChamberToAdd;
 
-            currentChamber.lock.unlock();
-            testChamberToAdd.nextChamber.lock.unlock();
+            currentChamber.lock.tryUnlockWrite();
+            testChamberToAdd.nextChamber.lock.tryUnlockWrite();
             return;
         }
 
         //Current chamber's next node's ID is < testChamberToAdd's,
         //recursively call passing in the next node as the head
         if(currentChamber.nextChamber.testSubjectId < testChamberToAdd.testSubjectId) {
-            if(currentChamber.nextChamber.nextChamber != null) currentChamber.nextChamber.nextChamber.lock.lock();
+            if(currentChamber.nextChamber.nextChamber != null) currentChamber.nextChamber.nextChamber.lock.writeLock();
             TestChamber nextInLine = currentChamber.nextChamber;
-            currentChamber.lock.unlock();
+            currentChamber.lock.tryUnlockWrite();
 
             addChamberToList(nextInLine, testChamberToAdd);
         }

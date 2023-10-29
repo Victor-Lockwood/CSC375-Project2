@@ -1,10 +1,11 @@
 package CustomObjects;
 
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.StampedLock;
 
 public class TestChamber {
     //Each chamber needs to be locked in hand over hand locking
-    public ReentrantLock lock = new ReentrantLock();
+    public StampedLock lock = new StampedLock();
 
     public int testSubjectId, age;
 

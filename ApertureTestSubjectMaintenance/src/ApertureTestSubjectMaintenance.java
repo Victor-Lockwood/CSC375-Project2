@@ -24,6 +24,7 @@ public class ApertureTestSubjectMaintenance {
 
         //Let's see what we've got
         printChamberStats(testChamberHandler.head, 0);
+        printWorkerStats(testChamberHandler);
     }
 
     /**
@@ -45,5 +46,24 @@ public class ApertureTestSubjectMaintenance {
         if (currentChamber.nextChamber != null)
             printChamberStats(currentChamber.nextChamber, counter);
 
+    }
+
+    public static void printWorkerStats(TestChamberHandler chamberHandler) {
+        int totalWrites = 0;
+        int totalReads = 0;
+
+        for(int i = 0; i<chamberHandler.workers.length; i++) {
+            totalWrites += chamberHandler.workers[i].completedWrites;
+            totalReads += chamberHandler.workers[i].completedReads;
+
+            System.out.println(
+                    "-- Stats for Worker " + i + "--\n - " +
+                    "Reads :  " + chamberHandler.workers[i].completedReads + "\n - " +
+                    "Writes:  " +chamberHandler.workers[i].completedWrites + "\n\n"
+            );
+        }
+
+        System.out.println("TOTAL WRITES: " + totalWrites);
+        System.out.println("TOTAL READS : " + totalReads);
     }
 }

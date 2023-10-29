@@ -28,7 +28,7 @@ public class TestChamberHandler {
     String[] FIRST_NAMES = {"BILLY", "BOB", "CAROLINE", "CAVE", "FACT", "SPACE", "WHEATLEY", "CHELL", "KEVIN", "RICK", "ROBO", "CYBER", "MECH", "BOLT", "CIRCUIT", "STEEL", "PIXEL", "NANO", "SPARK", "TECH", "GIZMO", "VOLT", "RUSTY", "ASTRID", "ZARA", "REX", "ORION", "LEXI", "DROIDA", "NOVA"};
     String[] LAST_NAMES = {"CORE", "SPHERE", "JOHNSON", "ECHO", "MACHINA", "CIRCUITRY", "STEELHEART", "GEARSMITH", "BOLTSTRIDER", "WIREDON", "PIXELWELD", "NANOTECH", "SPARKFORGE", "CYBERLOCK", "GIZMOTECH", "VOLTSTREAM", "RUSTON", "ANDROSON", "ZARATECH", "REXTRON", "ORIONIX", "LEXINGTON", "DROIDSTEIN", "NOVAFLUX"};
 
-    final Worker[] workers;
+    public final Worker[] workers;
 
     final CountDownLatch finished;
 
@@ -113,6 +113,14 @@ public class TestChamberHandler {
         }
 
         return false;
+    }
+
+    /**
+     * Return a random chamber ID.
+     * @return ID of a random generator.
+     */
+    public synchronized int getRandomChamberId() {
+        return idList.get(ThreadLocalRandom.current().nextInt(idList.size() - 1));
     }
 
     /**
