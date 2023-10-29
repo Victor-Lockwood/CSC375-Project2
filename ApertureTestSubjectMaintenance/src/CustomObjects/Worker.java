@@ -1,32 +1,75 @@
 package CustomObjects;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 public class Worker extends Thread {
 
     final TestChamberHandler chamberHandler;
 
+    int completedWrites = 0;
+
+    int completedReads = 0;
+
+    final int MAX_WRITES;
+
     public Worker(TestChamberHandler chamberHandler) {
         this.chamberHandler = chamberHandler;
+        MAX_WRITES = (int) Math.floor((this.chamberHandler.MAX_ID - (this.chamberHandler.NUM_INITIAL_CHAMBERS + 1)) / this.chamberHandler.workers.length);
     }
 
     public void run() {
-        createAndInsertChamber();
+        boolean isWrite = ThreadLocalRandom.current().nextInt(10) >= 8;
+
+        while((completedWrites + completedReads) < 5) {
+            createAndInsertChamber();
+            completedWrites++;
+
+/*            if(isWrite) {
+                createAndInsertChamber();
+                completedWrites++;
+            } else {
+                readRandomChamber();
+                completedReads++;
+            }
+
+            isWrite = ThreadLocalRandom.current().nextInt(100) >= 80;*/
+        }
         chamberHandler.threadFinished();
     }
 
-    //Pattern I found here: https://www.linkedin.com/pulse/concurrent-simple-data-structure-danil-tolonbekov
+    private void readRandomChamber() {
+        int chamberId = ThreadLocalRandom.current().nextInt(chamberHandler.MAX_ID);
+
+        while(traverseList(chamberId, chamberHandler.head));
+    }
+
+    private boolean traverseList(int id, TestChamber currentChamber) {
+        if(currentChamber.testSubjectId == id) {
+            int x = currentChamber.age;
+            String name = currentChamber.subjectNameHere;
+            return true;
+        } else if(currentChamber.testSubjectId > id) {
+            return false;
+        } else if(currentChamber.nextChamber != null) {
+            traverseList(id, currentChamber.nextChamber);
+        }
+        return false;
+    }
+
+    //***** WRITE CODE *****
 
     /**
      * Main code for writers to add chambers willy-nilly.
      */
     private void createAndInsertChamber() {
         this.chamberHandler.head.lock.lock();
-        TestChamber testChamberToAdd = chamberHandler.generateRandomTestChamber();
+        TestChamber testChamberToAdd = chamberHandler.generateRandomTestChamber(false);
         //testChamberToAdd.lock.lock();
 
         if(this.chamberHandler.head.nextChamber == null) {
             this.chamberHandler.head.nextChamber = testChamberToAdd;
             this.chamberHandler.head.lock.unlock();
-            ///testChamberToAdd.lock.unlock();
+
             return;
         } else {
             this.chamberHandler.head.nextChamber.lock.lock();
@@ -49,7 +92,6 @@ public class Worker extends Thread {
             if(currentChamber == this.chamberHandler.head)
                 this.chamberHandler.head = testChamberToAdd; //Update current head if applicable
 
-            //testChamberToAdd.lock.unlock();
             currentChamber.lock.unlock();
             if(currentChamber.nextChamber != null) currentChamber.nextChamber.lock.unlock();
             return;
@@ -59,7 +101,6 @@ public class Worker extends Thread {
         if (currentChamber.nextChamber == null) {
             currentChamber.nextChamber = testChamberToAdd;
 
-            //testChamberToAdd.lock.unlock();
             currentChamber.lock.unlock();
             return;
         }
@@ -71,7 +112,6 @@ public class Worker extends Thread {
             testChamberToAdd.nextChamber = currentChamber.nextChamber;
             currentChamber.nextChamber = testChamberToAdd;
 
-            //testChamberToAdd.lock.unlock();
             currentChamber.lock.unlock();
             testChamberToAdd.nextChamber.lock.unlock();
             return;
@@ -88,17 +128,4 @@ public class Worker extends Thread {
         }
     }
 
-    //Pattern I found here: https://www.linkedin.com/pulse/concurrent-simple-data-structure-danil-tolonbekov
-    /**
-     * Locks the given TestChamber and the one attached to it if one exists.
-     * We can't do an unlocked pair because some reference switching will cause them to be unlinked.
-     * @param testChamber  The TestChamber to lock.
-     */
-    private void lockPair(TestChamber testChamber) {
-        testChamber.lock.lock();
-
-        if(testChamber.nextChamber != null) {
-            testChamber.nextChamber.lock.lock();
-        }
-    }
 }

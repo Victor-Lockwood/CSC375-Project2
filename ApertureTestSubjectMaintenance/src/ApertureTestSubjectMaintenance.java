@@ -10,14 +10,11 @@ public class ApertureTestSubjectMaintenance {
      */
     static final int NCPUS = Runtime.getRuntime().availableProcessors();
 
-    /** Runs start with two threads, increasing by two through max */
-    static final int DEFAULT_MAX_THREADS = Math.max(4, NCPUS + NCPUS/2);
-
     public static void main(String[] args) throws Exception {
         System.out.println("Total threads: " + NCPUS);
         TestChamberHandler testChamberHandler = new TestChamberHandler(NCPUS);
 
-        testChamberHandler.initializeTestChambers(10);
+        testChamberHandler.initializeTestChambers();
 
         //Fire it up!
         testChamberHandler.start();
@@ -27,9 +24,6 @@ public class ApertureTestSubjectMaintenance {
 
         //Let's see what we've got
         printChamberStats(testChamberHandler.head, 0);
-
-
-        //System.out.println("placeholder");
     }
 
     /**
@@ -41,17 +35,15 @@ public class ApertureTestSubjectMaintenance {
         System.out.println(
                 "COUNT: " + counter + "\n" +
                 "Generated test chamber with following data\n" +
-                        "Name:            " + currentChamber.subjectNameHere + "\n" +
-                        "Age:             " + currentChamber.age + "\n" +
                         "ID:              " + currentChamber.testSubjectId + "\n" +
+                        "Name:            " + currentChamber.subjectNameHere + "\n" +
                         "Is Testing:      " + currentChamber.isTesting + "\n" +
+                        "Age:             " + currentChamber.age + "\n" +
                         "Test Completion: " + currentChamber.testCompletionStatus + "%\n"
         );
 
         if (currentChamber.nextChamber != null)
             printChamberStats(currentChamber.nextChamber, counter);
-
-
 
     }
 }
