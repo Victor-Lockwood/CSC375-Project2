@@ -38,15 +38,37 @@ public class ApertureTestSubjectMaintenance {
         } else {
             System.out.println("Total threads: " + NCPUS);
             TestChamberHandlerConcurrent testChamberHandler = new TestChamberHandlerConcurrent(NCPUS);
-            TestChamberConcurrent testChamber = testChamberHandler.generateRandomTestChamber();
-            System.out.println("Generated ID: " + testChamber.testSubjectId);
 
             testChamberHandler.initializeTestChambers();
-            ConcurrentHashMap.KeySetView<Integer, TestChamberConcurrent> keys = testChamberHandler.chamberMap.keySet();
 
-            for(Integer key: keys) {
-                System.out.println(key);
-            }
+            testChamberHandler.start();
+
+            testChamberHandler.awaitDone();
+
+            printChamberStats(testChamberHandler);
+            printWorkerStats(testChamberHandler);
+        }
+
+    }
+
+    /**
+     * Prints stats down the linked list of test chambers starting at the given chamber.
+     * @param chamberHandler The TestChamberHandlerConcurrent to work with.
+     */
+    public static void printChamberStats(TestChamberHandlerConcurrent chamberHandler) {
+        int counter = 1;
+
+        for(TestChamberConcurrent currentChamber : chamberHandler.chamberMap.values()) {
+            System.out.println(
+                    "COUNT: " + counter + "\n" +
+                            "Generated test chamber with following data\n" +
+                            "ID:              " + currentChamber.testSubjectId + "\n" +
+                            "Name:            " + currentChamber.subjectNameHere + "\n" +
+                            "Is Testing:      " + currentChamber.isTesting + "\n" +
+                            "Age:             " + currentChamber.age + "\n" +
+                            "Test Completion: " + currentChamber.testCompletionStatus + "%\n"
+            );
+            counter++;
         }
 
     }
@@ -72,6 +94,10 @@ public class ApertureTestSubjectMaintenance {
 
     }
 
+    /**
+     * Print the worker read/write stats of a given TestChamberHandler.
+     * @param chamberHandler The TestChamberHandler to work with.
+     */
     public static void printWorkerStats(TestChamberHandler chamberHandler) {
         int totalWrites = 0;
         int totalReads = 0;
@@ -84,6 +110,31 @@ public class ApertureTestSubjectMaintenance {
                     "-- Stats for Worker " + i + "--\n - " +
                     "Reads :  " + chamberHandler.workers[i].completedReads + "\n - " +
                     "Writes:  " +chamberHandler.workers[i].completedWrites + "\n\n"
+            );
+        }
+
+        int totalOps = totalReads + totalWrites;
+        System.out.println("TOTAL WRITES: " + totalWrites); //THIS WILL PROBABLY FLUCTUATE... IT'S OK.  DUE TO RANDOMNESS IN READ/WRITE SELECTION.
+        System.out.println("TOTAL READS : " + totalReads);
+        System.out.println("TOTAL OPS   :  " + totalOps);
+        System.out.println("----------");
+
+        System.out.println("PERCENT WRITES: " + (((double)totalWrites / (double)totalOps) * 100) + "%");
+        System.out.println("PERCENT WRITES: " + (((double)totalReads / (double)totalOps) * 100) + "%");
+    }
+
+    public static void printWorkerStats(TestChamberHandlerConcurrent chamberHandler) {
+        int totalWrites = 0;
+        int totalReads = 0;
+
+        for(int i = 0; i<chamberHandler.workers.length; i++) {
+            totalWrites += chamberHandler.workers[i].completedWrites;
+            totalReads += chamberHandler.workers[i].completedReads;
+
+            System.out.println(
+                    "-- Stats for Worker " + i + "--\n - " +
+                            "Reads :  " + chamberHandler.workers[i].completedReads + "\n - " +
+                            "Writes:  " +chamberHandler.workers[i].completedWrites + "\n\n"
             );
         }
 
