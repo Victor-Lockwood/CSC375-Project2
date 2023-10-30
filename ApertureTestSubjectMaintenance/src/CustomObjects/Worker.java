@@ -20,7 +20,8 @@ public class Worker extends Thread {
     public void run() {
         boolean isWrite = ThreadLocalRandom.current().nextInt(10) >= 8;
 
-        while((completedWrites + completedReads) < 20) {
+        //If this is greater than MAX_WRITES we'll loop
+        while((completedWrites + completedReads) < (MAX_WRITES * 10)) {
 
             if(isWrite && (completedWrites < MAX_WRITES)) {
                 createAndInsertChamber();

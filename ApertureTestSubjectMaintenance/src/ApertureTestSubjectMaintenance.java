@@ -63,7 +63,13 @@ public class ApertureTestSubjectMaintenance {
             );
         }
 
-        System.out.println("TOTAL WRITES: " + totalWrites);
+        int totalOps = totalReads + totalWrites;
+        System.out.println("TOTAL WRITES: " + totalWrites); //THIS WILL PROBABLY FLUCTUATE... IT'S OK.  DUE TO RANDOMNESS IN READ/WRITE SELECTION.
         System.out.println("TOTAL READS : " + totalReads);
+        System.out.println("TOTAL OPS   :  " + totalOps);
+        System.out.println("----------");
+
+        System.out.println("PERCENT WRITES: " + (((double)totalWrites / (double)totalOps) * 100) + "%");
+        System.out.println("PERCENT WRITES: " + (((double)totalReads / (double)totalOps) * 100) + "%");
     }
 }
