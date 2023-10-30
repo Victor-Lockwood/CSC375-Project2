@@ -1,6 +1,12 @@
+import ConcurrentObjects.TestChamberConcurrent;
+import ConcurrentObjects.TestChamberHandlerConcurrent;
 import CustomObjects.TestChamber;
 import CustomObjects.TestChamberHandler;
 import CustomObjects.Worker;
+
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ApertureTestSubjectMaintenance {
 
@@ -11,20 +17,38 @@ public class ApertureTestSubjectMaintenance {
     static final int NCPUS = Runtime.getRuntime().availableProcessors();
 
     public static void main(String[] args) throws Exception {
-        System.out.println("Total threads: " + NCPUS);
-        TestChamberHandler testChamberHandler = new TestChamberHandler(NCPUS);
 
-        testChamberHandler.initializeTestChambers();
+        boolean isLinkedList = false;
 
-        //Fire it up!
-        testChamberHandler.start();
+        if(isLinkedList) {
+            System.out.println("Total threads: " + NCPUS);
+            TestChamberHandler testChamberHandler = new TestChamberHandler(NCPUS);
 
-        //Wait til everything's done its stuff
-        testChamberHandler.awaitDone();
+            testChamberHandler.initializeTestChambers();
 
-        //Let's see what we've got
-        printChamberStats(testChamberHandler.head, 0);
-        printWorkerStats(testChamberHandler);
+            //Fire it up!
+            testChamberHandler.start();
+
+            //Wait til everything's done its stuff
+            testChamberHandler.awaitDone();
+
+            //Let's see what we've got
+            printChamberStats(testChamberHandler.head, 0);
+            printWorkerStats(testChamberHandler);
+        } else {
+            System.out.println("Total threads: " + NCPUS);
+            TestChamberHandlerConcurrent testChamberHandler = new TestChamberHandlerConcurrent(NCPUS);
+            TestChamberConcurrent testChamber = testChamberHandler.generateRandomTestChamber();
+            System.out.println("Generated ID: " + testChamber.testSubjectId);
+
+            testChamberHandler.initializeTestChambers();
+            ConcurrentHashMap.KeySetView<Integer, TestChamberConcurrent> keys = testChamberHandler.chamberMap.keySet();
+
+            for(Integer key: keys) {
+                System.out.println(key);
+            }
+        }
+
     }
 
     /**

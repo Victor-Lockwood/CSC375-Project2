@@ -80,8 +80,6 @@ public class TestChamberHandler {
      * @return The request test chamber.
      */
     public synchronized TestChamber generateRandomTestChamber(boolean isInitial) {
-        String name = pickRandomName();
-
         int idCandidate = 0;
 
         //If it's in the list of IDs, regenerate a new one.
