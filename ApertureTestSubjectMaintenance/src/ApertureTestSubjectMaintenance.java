@@ -18,7 +18,7 @@ public class ApertureTestSubjectMaintenance {
 
     public static void main(String[] args) throws Exception {
 
-        boolean isLinkedList = false;
+        boolean isLinkedList = true;
 
         if(isLinkedList) {
             System.out.println("Total threads: " + NCPUS);
