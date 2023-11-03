@@ -1,5 +1,7 @@
 package vlockwoo.ConcurrentObjects;
 
+import java.util.UUID;
+
 public class ConcurrentObjectsMain {
 
 
@@ -41,6 +43,8 @@ public class ConcurrentObjectsMain {
                             "Age:             " + currentChamber.age + "\n" +
                             "Test Completion: " + currentChamber.testCompletionStatus + "%\n"
             );
+
+            //It's a hashmap, we don't need to know if it's in order
             counter++;
         }
 
@@ -72,6 +76,6 @@ public class ConcurrentObjectsMain {
         System.out.println("----------");
 
         System.out.println("PERCENT WRITES: " + (((double)totalWrites / (double)totalOps) * 100) + "%");
-        System.out.println("PERCENT WRITES: " + (((double)totalReads / (double)totalOps) * 100) + "%");
+        System.out.println("PERCENT READS: " + (((double)totalReads / (double)totalOps) * 100) + "%");
     }
 }

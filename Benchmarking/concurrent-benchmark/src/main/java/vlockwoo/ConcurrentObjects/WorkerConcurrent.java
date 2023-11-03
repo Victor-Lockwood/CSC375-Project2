@@ -1,5 +1,8 @@
 package vlockwoo.ConcurrentObjects;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class WorkerConcurrent extends Thread {
@@ -20,31 +23,32 @@ public class WorkerConcurrent extends Thread {
     public WorkerConcurrent(TestChamberHandlerConcurrent chamberHandler) {
         this.chamberHandler = chamberHandler;
         this.PERCENT_READS = this.chamberHandler.PERCENT_READS;
-        MAX_WRITES = (int) Math.floor((this.chamberHandler.MAX_ID - (this.chamberHandler.NUM_INITIAL_CHAMBERS + 1)) / this.chamberHandler.workers.length);
+        MAX_WRITES = 100 - this.chamberHandler.PERCENT_READS;
     }
 
     public void run() {
         boolean isWrite = ThreadLocalRandom.current().nextInt(100) >= this.PERCENT_READS;
 
-        while((completedWrites + completedReads) < (MAX_WRITES * 10)) {
+        while((completedWrites + completedReads) < 100) {
 
             if(isWrite && (completedWrites < MAX_WRITES)) {
                 createAndInsertChamber();
                 completedWrites++;
             } else {
-                int chamberId = ThreadLocalRandom.current().nextInt(chamberHandler.MAX_ID);
+                List<UUID> keys = new ArrayList<>(this.chamberHandler.chamberMap.keySet());
+                UUID chamberId = keys.get(ThreadLocalRandom.current().nextInt(keys.size() - 1));
                 readChamber(chamberId);
                 completedReads++;
             }
 
-            isWrite = ThreadLocalRandom.current().nextInt(100) >= 80;
+            isWrite = ThreadLocalRandom.current().nextInt(100) >= this.PERCENT_READS;
         }
         chamberHandler.threadFinished();
     }
 
     //***** READ CODE *****
 
-    private boolean readChamber(int id) {
+    private boolean readChamber(UUID id) {
         TestChamberConcurrent currentChamber = this.chamberHandler.chamberMap.get(id);
 
         if(currentChamber != null) {

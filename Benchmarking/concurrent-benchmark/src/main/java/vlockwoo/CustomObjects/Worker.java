@@ -26,7 +26,7 @@ public class Worker extends Thread {
     public void run() {
         boolean isWrite = ThreadLocalRandom.current().nextInt(100) >= this.PERCENT_READS;
 
-        while((completedWrites + completedReads) < (MAX_WRITES * 10)) {
+        while((completedWrites + completedReads) < 100) {
 
             if(isWrite && (completedWrites < MAX_WRITES)) {
                 createAndInsertChamber();
@@ -37,7 +37,7 @@ public class Worker extends Thread {
                 completedReads++;
             }
 
-            isWrite = ThreadLocalRandom.current().nextInt(100) >= 80;
+            isWrite = ThreadLocalRandom.current().nextInt(100) >= PERCENT_READS;
         }
         chamberHandler.threadFinished();
     }

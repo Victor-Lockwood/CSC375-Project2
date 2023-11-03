@@ -57,7 +57,7 @@ public class MyBenchmark {
         public static class ConcurrentObject {
             TestChamberHandlerConcurrent testChamberHandler;
 
-            @Param({"2", "128"})
+            @Param({"12", "128"})
             int numberOfThreads;
 
             //If this isn't Invocation, it'll break
@@ -95,9 +95,18 @@ public class MyBenchmark {
             public void testCustomObjects(CustomObject co, Blackhole blackhole) {
                 co.testChamberHandler.start();
 
+                try {
+                    co.testChamberHandler.awaitDone();
+                } catch (InterruptedException e) {
+                    System.out.println("Bad");
+                }
+
                 for(Worker worker : co.testChamberHandler.workers) {
                     blackhole.consume(worker.dumpingGrounds);
                 }
+
+                blackhole.consume(co.testChamberHandler.head);
+                blackhole.consume(co.testChamberHandler.idList);
             }
         }
 
@@ -112,9 +121,18 @@ public class MyBenchmark {
             @Measurement(iterations = 4)
             public void testConcurrentObjects(ConcurrentObject co, Blackhole blackhole) {
                 co.testChamberHandler.start();
+
+                try {
+                    co.testChamberHandler.awaitDone();
+                } catch (InterruptedException e) {
+                    System.out.println("Bad");
+                }
+
                 for(WorkerConcurrent worker : co.testChamberHandler.workers) {
                     blackhole.consume(worker.dumpingGrounds);
                 }
+
+                blackhole.consume(co.testChamberHandler.chamberMap);
             }
         }
 
