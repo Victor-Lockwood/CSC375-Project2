@@ -53,63 +53,68 @@ public class MyBenchmark {
     public static class CustomObjectBenches {
 
         //Setup stuff for testing ConcurrentHashMap
-        @State(Scope.Benchmark)
+        @State(Scope.Thread)
         public static class ConcurrentObject {
             TestChamberHandlerConcurrent testChamberHandler;
 
             @Param({"2", "128"})
-            int numberOfCores;
+            int numberOfThreads;
 
             //If this isn't Invocation, it'll break
             @Setup(Level.Invocation)
             public void setup() {
-                testChamberHandler = new TestChamberHandlerConcurrent(numberOfCores, 80);
+                testChamberHandler = new TestChamberHandlerConcurrent(numberOfThreads, 80);
                 testChamberHandler.initializeTestChambers();
             }
         }
 
-        //Setup stuff for testing the linked list
-        @State(Scope.Benchmark)
+        @State(Scope.Thread)
         public static class CustomObject {
             TestChamberHandler testChamberHandler;
 
-            @Param({"2", "128"})
-            int numberOfCores;
+            @Param({"2","128"})
+            int numberOfThreads;
 
             //If this isn't Invocation, it'll break
             @Setup(Level.Invocation)
             public void setup() {
-                testChamberHandler = new TestChamberHandler(numberOfCores, 80);
+                testChamberHandler = new TestChamberHandler(numberOfThreads, 80);
                 testChamberHandler.initializeTestChambers();
             }
         }
 
+        @State(Scope.Thread)
+        public static class CustomStuff {
+            @Threads(Threads.MAX)
+            @Benchmark
+            @BenchmarkMode(Mode.Throughput)
+            @OutputTimeUnit(TimeUnit.SECONDS)
+            @Fork(value = 2,warmups = 2)
+            @Warmup( iterations = 3, time = 2)
+            @Measurement(iterations = 4)
+            public void testCustomObjects(CustomObject co, Blackhole blackhole) {
+                co.testChamberHandler.start();
 
-
-        @Benchmark
-        @BenchmarkMode(Mode.Throughput)
-        @OutputTimeUnit(TimeUnit.MILLISECONDS)
-        @Fork(value = 2,warmups = 2)
-        @Warmup( iterations = 3, time = 2)
-        @Measurement(iterations = 4)
-        public void testConcurrentObjects(ConcurrentObject co, Blackhole blackhole) {
-            co.testChamberHandler.start();
-            for(WorkerConcurrent worker: co.testChamberHandler.workers) {
-                blackhole.consume(worker.dumpingGrounds);
+                for(Worker worker : co.testChamberHandler.workers) {
+                    blackhole.consume(worker.dumpingGrounds);
+                }
             }
         }
 
-        @Benchmark
-        @BenchmarkMode(Mode.Throughput)
-        @OutputTimeUnit(TimeUnit.MILLISECONDS)
-        @Fork(value = 2,warmups = 2)
-        @Warmup( iterations = 3, time = 2)
-        @Measurement(iterations = 4)
-        public void testCustomObjects(CustomObject co, Blackhole blackhole) {
-            co.testChamberHandler.start();
-
-            for(Worker worker: co.testChamberHandler.workers) {
-                blackhole.consume(worker.dumpingGrounds);
+        @State(Scope.Thread)
+        public static class ConcurrentStuff {
+            @Threads(Threads.MAX)
+            @Benchmark
+            @BenchmarkMode(Mode.Throughput)
+            @OutputTimeUnit(TimeUnit.SECONDS)
+            @Fork(value = 2,warmups = 2)
+            @Warmup( iterations = 3, time = 2)
+            @Measurement(iterations = 4)
+            public void testConcurrentObjects(ConcurrentObject co, Blackhole blackhole) {
+                co.testChamberHandler.start();
+                for(WorkerConcurrent worker : co.testChamberHandler.workers) {
+                    blackhole.consume(worker.dumpingGrounds);
+                }
             }
         }
 

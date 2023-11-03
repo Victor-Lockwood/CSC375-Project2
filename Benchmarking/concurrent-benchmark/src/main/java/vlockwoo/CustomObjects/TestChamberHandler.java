@@ -40,9 +40,9 @@ public class TestChamberHandler {
         int ncpus = Runtime.getRuntime().availableProcessors();
         int numberOfWorkers = suggestedNumberOfWorkers;
 
-        if(suggestedNumberOfWorkers > ncpus) {
-            numberOfWorkers = ncpus;
-        }
+        //if(suggestedNumberOfWorkers > ncpus) {
+        //    numberOfWorkers = ncpus;
+        //}
 
         this.workers = new Worker[numberOfWorkers];
         finished = new CountDownLatch(numberOfWorkers);
