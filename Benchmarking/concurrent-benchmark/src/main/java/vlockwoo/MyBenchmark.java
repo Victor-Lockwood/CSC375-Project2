@@ -31,27 +31,88 @@
 
 package vlockwoo;
 
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Mode;
-import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.Blackhole;
+import vlockwoo.ConcurrentObjects.TestChamberConcurrent;
+import vlockwoo.ConcurrentObjects.TestChamberHandlerConcurrent;
+import vlockwoo.ConcurrentObjects.WorkerConcurrent;
 import vlockwoo.CustomObjects.TestChamber;
+import vlockwoo.CustomObjects.TestChamberHandler;
+import vlockwoo.CustomObjects.Worker;
 
 import java.util.concurrent.TimeUnit;
 
 public class MyBenchmark {
 
-    @Benchmark @BenchmarkMode(Mode.Throughput) @OutputTimeUnit(TimeUnit.SECONDS)
-    public void testMethod() {
-        // This is a demo/sample template for building your JMH benchmarks. Edit as needed.
-        // Put your benchmark code here.
+    //Many thanks yet again to Scarlett Weeks for having her repos public.  A lot of tutorials
+    //gloss over more intricate details about the benchmarking annotations as well as file structures
+    //for projects that didn't start out with a Maven project.  My benchmarking stuff takes a somewhat different form
+    //for various reasons, but I have a better understanding of what a lot of the functionality means due to her example.
+    //Check out her repo here: https://github.com/Kayyali78/JMH_Perf_Testing/
+    //I referenced this tutorial as well: https://jenkov.com/tutorials/java-performance/jmh.html
+    public static class CustomObjectBenches {
 
-        int a = 1;
-        int b = 2;
-        int sum = a + b;
+        //Setup stuff for testing ConcurrentHashMap
+        @State(Scope.Benchmark)
+        public static class ConcurrentObject {
+            TestChamberHandlerConcurrent testChamberHandler;
 
-        TestChamber testChamber = new TestChamber(1, 100, 3, "bleh", true);
-    
+            @Param({"2", "128"})
+            int numberOfCores;
+
+            //If this isn't Invocation, it'll break
+            @Setup(Level.Invocation)
+            public void setup() {
+                testChamberHandler = new TestChamberHandlerConcurrent(numberOfCores, 80);
+                testChamberHandler.initializeTestChambers();
+            }
+        }
+
+        //Setup stuff for testing the linked list
+        @State(Scope.Benchmark)
+        public static class CustomObject {
+            TestChamberHandler testChamberHandler;
+
+            @Param({"2", "128"})
+            int numberOfCores;
+
+            //If this isn't Invocation, it'll break
+            @Setup(Level.Invocation)
+            public void setup() {
+                testChamberHandler = new TestChamberHandler(numberOfCores, 80);
+                testChamberHandler.initializeTestChambers();
+            }
+        }
+
+
+
+        @Benchmark
+        @BenchmarkMode(Mode.Throughput)
+        @OutputTimeUnit(TimeUnit.MILLISECONDS)
+        @Fork(value = 2,warmups = 2)
+        @Warmup( iterations = 3, time = 2)
+        @Measurement(iterations = 4)
+        public void testConcurrentObjects(ConcurrentObject co, Blackhole blackhole) {
+            co.testChamberHandler.start();
+            for(WorkerConcurrent worker: co.testChamberHandler.workers) {
+                blackhole.consume(worker.dumpingGrounds);
+            }
+        }
+
+        @Benchmark
+        @BenchmarkMode(Mode.Throughput)
+        @OutputTimeUnit(TimeUnit.MILLISECONDS)
+        @Fork(value = 2,warmups = 2)
+        @Warmup( iterations = 3, time = 2)
+        @Measurement(iterations = 4)
+        public void testCustomObjects(CustomObject co, Blackhole blackhole) {
+            co.testChamberHandler.start();
+
+            for(Worker worker: co.testChamberHandler.workers) {
+                blackhole.consume(worker.dumpingGrounds);
+            }
+        }
+
     }
 
 }

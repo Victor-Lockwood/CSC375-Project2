@@ -1,7 +1,6 @@
-package vlockwoo.CustomObjects;
+package vlockwoo.ConcurrentObjects;
 
-
-public class CustomObjectsMain {
+public class ConcurrentObjectsMain {
 
 
     /**
@@ -12,48 +11,43 @@ public class CustomObjectsMain {
     public static void main(String[] args) throws Exception {
 
         System.out.println("Total threads: " + NCPUS);
-        TestChamberHandler testChamberHandler = new TestChamberHandler(NCPUS, 80);
+        TestChamberHandlerConcurrent testChamberHandler = new TestChamberHandlerConcurrent(NCPUS, 80);
 
         testChamberHandler.initializeTestChambers();
 
-        //Fire it up!
         testChamberHandler.start();
 
-        //Wait til everything's done its stuff
         testChamberHandler.awaitDone();
 
-        //Let's see what we've got
-        printChamberStats(testChamberHandler.head, 0);
+        printChamberStats(testChamberHandler);
         printWorkerStats(testChamberHandler);
 
     }
 
     /**
      * Prints stats down the linked list of test chambers starting at the given chamber.
-     * @param currentChamber The TestChamber to start with.
+     * @param chamberHandler The TestChamberHandlerConcurrent to work with.
      */
-    public static void printChamberStats(TestChamber currentChamber, int counter) {
-        counter++;
-        System.out.println(
-                "COUNT: " + counter + "\n" +
-                "Generated test chamber with following data\n" +
-                        "ID:              " + currentChamber.testSubjectId + "\n" +
-                        "Name:            " + currentChamber.subjectNameHere + "\n" +
-                        "Is Testing:      " + currentChamber.isTesting + "\n" +
-                        "Age:             " + currentChamber.age + "\n" +
-                        "Test Completion: " + currentChamber.testCompletionStatus + "%\n"
-        );
+    public static void printChamberStats(TestChamberHandlerConcurrent chamberHandler) {
+        int counter = 1;
 
-        if (currentChamber.nextChamber != null)
-            printChamberStats(currentChamber.nextChamber, counter);
+        for(TestChamberConcurrent currentChamber : chamberHandler.chamberMap.values()) {
+            System.out.println(
+                    "COUNT: " + counter + "\n" +
+                            "Generated test chamber with following data\n" +
+                            "ID:              " + currentChamber.testSubjectId + "\n" +
+                            "Name:            " + currentChamber.subjectNameHere + "\n" +
+                            "Is Testing:      " + currentChamber.isTesting + "\n" +
+                            "Age:             " + currentChamber.age + "\n" +
+                            "Test Completion: " + currentChamber.testCompletionStatus + "%\n"
+            );
+            counter++;
+        }
 
     }
 
-    /**
-     * Print the worker read/write stats of a given TestChamberHandler.
-     * @param chamberHandler The TestChamberHandler to work with.
-     */
-    public static void printWorkerStats(TestChamberHandler chamberHandler) {
+
+    public static void printWorkerStats(TestChamberHandlerConcurrent chamberHandler) {
         int totalWrites = 0;
         int totalReads = 0;
 
@@ -63,8 +57,8 @@ public class CustomObjectsMain {
 
             System.out.println(
                     "-- Stats for Worker " + i + "--\n - " +
-                    "Reads :  " + chamberHandler.workers[i].completedReads + "\n - " +
-                    "Writes:  " +chamberHandler.workers[i].completedWrites + "\n\n"
+                            "Reads :  " + chamberHandler.workers[i].completedReads + "\n - " +
+                            "Writes:  " +chamberHandler.workers[i].completedWrites + "\n\n"
             );
 
             //Just to keep from optimizing values away
@@ -80,5 +74,4 @@ public class CustomObjectsMain {
         System.out.println("PERCENT WRITES: " + (((double)totalWrites / (double)totalOps) * 100) + "%");
         System.out.println("PERCENT WRITES: " + (((double)totalReads / (double)totalOps) * 100) + "%");
     }
-
 }

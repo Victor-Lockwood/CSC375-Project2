@@ -12,13 +12,19 @@ public class Worker extends Thread {
 
     final int MAX_WRITES;
 
+    final int PERCENT_READS;
+
+    //Just so our reads don't get washed away
+    public long dumpingGrounds = 0;
+
     public Worker(TestChamberHandler chamberHandler) {
         this.chamberHandler = chamberHandler;
+        this.PERCENT_READS = this.chamberHandler.PERCENT_READS;
         MAX_WRITES = (int) Math.floor((this.chamberHandler.MAX_ID - (this.chamberHandler.NUM_INITIAL_CHAMBERS + 1)) / this.chamberHandler.workers.length);
     }
 
     public void run() {
-        boolean isWrite = ThreadLocalRandom.current().nextInt(10) >= 8;
+        boolean isWrite = ThreadLocalRandom.current().nextInt(100) >= this.PERCENT_READS;
 
         while((completedWrites + completedReads) < (MAX_WRITES * 10)) {
 
@@ -47,7 +53,9 @@ public class Worker extends Thread {
             while (!found && !notPresent) {
                 if (currentChamber.testSubjectId == id) {
                     int x = currentChamber.age;
+                    this.dumpingGrounds += x;
                     String name = currentChamber.subjectNameHere;
+                    this.dumpingGrounds += name.length();
 
                     currentChamber.lock.unlock(stamp);
                     found = true;
