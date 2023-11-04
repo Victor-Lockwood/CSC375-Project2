@@ -17,7 +17,7 @@ public class TestChamberHandler {
     //Progress should be out of 100.
     final int MAX_PROGRESS = 100;
 
-    final int MAX_ID = 101;
+    final int MAX_ID = 1000;
 
     final int NUM_INITIAL_CHAMBERS = 10;
 
@@ -32,7 +32,7 @@ public class TestChamberHandler {
 
     public final Worker[] workers;
 
-    final CountDownLatch finished;
+    //final CountDownLatch finished;
 
     public TestChamberHandler(int suggestedNumberOfWorkers, int percentReads) {
 
@@ -40,12 +40,14 @@ public class TestChamberHandler {
         int ncpus = Runtime.getRuntime().availableProcessors();
         int numberOfWorkers = suggestedNumberOfWorkers;
 
+        this.initializeTestChambers();
+
         if(suggestedNumberOfWorkers > ncpus) {
             numberOfWorkers = ncpus;
         }
 
         this.workers = new Worker[numberOfWorkers];
-        finished = new CountDownLatch(numberOfWorkers);
+//        finished = new CountDownLatch(numberOfWorkers);
 
         for(int i = 0; i<numberOfWorkers; i++) {
             Worker worker = new Worker(this);
@@ -60,7 +62,7 @@ public class TestChamberHandler {
         int numberOfWorkers =  12; //ncpus;
 
         this.workers = new Worker[numberOfWorkers];
-        finished = new CountDownLatch(numberOfWorkers);
+//        finished = new CountDownLatch(numberOfWorkers);
 
         for(int i = 0; i<numberOfWorkers; i++) {
             Worker worker = new Worker(this);
@@ -80,17 +82,17 @@ public class TestChamberHandler {
     /**
      * Decrement our countdown latch.
      */
-    public void threadFinished() {
-        finished.countDown();
-    }
+    //public void threadFinished() {
+//        finished.countDown();
+//    }
 
     /**
      * Wait til the countdown latch has released then the code calling this can resume.
      * @throws InterruptedException
      */
-    public void awaitDone() throws InterruptedException {
-        finished.await();
-    }
+//    public void awaitDone() throws InterruptedException {
+//        finished.await();
+//    }
 
     /**
      * Create a test chamber using random data.

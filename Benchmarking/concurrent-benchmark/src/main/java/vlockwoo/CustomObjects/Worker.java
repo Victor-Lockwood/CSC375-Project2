@@ -18,8 +18,6 @@ public class Worker implements Runnable {
 
     final int PERCENT_READS;
 
-    List<TestChamber> testChamberPool = new ArrayList<>();
-
     //Just so our reads don't get washed away
     public long dumpingGrounds = 0;
 
@@ -28,10 +26,10 @@ public class Worker implements Runnable {
         this.PERCENT_READS = this.chamberHandler.PERCENT_READS;
         MAX_WRITES = (int) Math.floor((this.chamberHandler.MAX_ID - (this.chamberHandler.NUM_INITIAL_CHAMBERS + 1)) / this.chamberHandler.workers.length);
 
-        for(int i = 0; i < MAX_WRITES; i++) {
-            TestChamber testChamberToAdd = chamberHandler.generateRandomTestChamber(false);
-            testChamberPool.add(testChamberToAdd);
-        }
+//        for(int i = 0; i < MAX_WRITES; i++) {
+//            TestChamber testChamberToAdd = chamberHandler.generateRandomTestChamber(false);
+//            testChamberPool.add(testChamberToAdd);
+//        }
     }
 
     public void run() {
@@ -43,14 +41,14 @@ public class Worker implements Runnable {
                 createAndInsertChamber();
                 completedWrites++;
             } else {
-                int chamberId = ThreadLocalRandom.current().nextInt(chamberHandler.MAX_ID);
+                int chamberId = ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE);
                 traverseList(chamberId);
                 completedReads++;
             }
 
             isWrite = ThreadLocalRandom.current().nextInt(100) >= PERCENT_READS;
         }
-        chamberHandler.threadFinished();
+        //chamberHandler.threadFinished();
     }
 
     //***** READ CODE *****
@@ -92,8 +90,8 @@ public class Worker implements Runnable {
      */
     private void createAndInsertChamber() {
         this.chamberHandler.head.lock.writeLock();
-        TestChamber testChamberToAdd = testChamberPool.get(ThreadLocalRandom.current().nextInt(testChamberPool.size()));
-        testChamberPool.remove(testChamberToAdd);
+        TestChamber testChamberToAdd = chamberHandler.generateRandomTestChamber(false);
+        //testChamberPool.remove(testChamberToAdd);
         //testChamberToAdd.lock.lock();
 
         if(this.chamberHandler.head.nextChamber == null) {

@@ -16,7 +16,6 @@ public class WorkerConcurrent implements Runnable {
 
     final int PERCENT_READS;
 
-    List<TestChamberConcurrent> testChamberPool = new ArrayList<>();
 
     //Just so our reads don't get washed away
     public long dumpingGrounds = 0;
@@ -25,11 +24,6 @@ public class WorkerConcurrent implements Runnable {
         this.chamberHandler = chamberHandler;
         this.PERCENT_READS = this.chamberHandler.PERCENT_READS;
         MAX_WRITES = (int) Math.floor((this.chamberHandler.MAX_ID - (this.chamberHandler.NUM_INITIAL_CHAMBERS + 1)) / this.chamberHandler.workers.length);
-
-        for(int i = 0; i < MAX_WRITES; i++) {
-            TestChamberConcurrent testChamberToAdd = chamberHandler.generateRandomTestChamber();
-            testChamberPool.add(testChamberToAdd);
-        }
     }
 
     public void run() {
@@ -37,7 +31,7 @@ public class WorkerConcurrent implements Runnable {
 
         while((completedWrites + completedReads) < 100) {
 
-            if(isWrite && (completedWrites < MAX_WRITES) && !testChamberPool.isEmpty()) {
+            if(isWrite && (completedWrites < MAX_WRITES)) {
                 createAndInsertChamber();
                 completedWrites++;
             } else {
@@ -72,8 +66,7 @@ public class WorkerConcurrent implements Runnable {
 
     //***** WRITE CODE *****
     private void createAndInsertChamber() {
-        TestChamberConcurrent testChamberToAdd = testChamberPool.get(ThreadLocalRandom.current().nextInt(testChamberPool.size()));
-        testChamberPool.remove(testChamberToAdd);
+        TestChamberConcurrent testChamberToAdd = chamberHandler.generateRandomTestChamber();
 
         chamberHandler.chamberMap.put(testChamberToAdd.testSubjectId, testChamberToAdd);
     }

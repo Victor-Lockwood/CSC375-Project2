@@ -51,93 +51,90 @@ public class MyBenchmark {
     //Check out her repo here: https://github.com/Kayyali78/JMH_Perf_Testing/
     //I referenced this tutorial as well: https://jenkov.com/tutorials/java-performance/jmh.html
 
+    @State(Scope.Benchmark)
+    public static class CustomObject {
+        TestChamberHandler testChamberHandler;
 
-        //Setup stuff for testing ConcurrentHashMap
-        @State(Scope.Benchmark)
-        public static class ConcurrentObject {
-            TestChamberHandlerConcurrent testChamberHandler;
+        @Param({"12", "128"})
+        int numberOfThreads;
 
-            @Param({"2", "128"})
-            int numberOfThreads;
-
-            //If this isn't Invocation, it'll break
-            @Setup(Level.Trial)
-            public void setup() {
-                testChamberHandler = new TestChamberHandlerConcurrent(numberOfThreads, 100);
-                testChamberHandler.initializeTestChambers();
-            }
+        @Setup(Level.Trial)
+        public void setup() {
+            testChamberHandler = new TestChamberHandler(numberOfThreads, 80);
+            testChamberHandler.initializeTestChambers();
         }
+    }
 
-        @State(Scope.Benchmark)
-        public static class CustomObject {
-            TestChamberHandler testChamberHandler;
+    //Setup stuff for testing ConcurrentHashMap
+    @State(Scope.Benchmark)
+    public static class ConcurrentObject {
+        TestChamberHandlerConcurrent testChamberHandler;
 
-            @Param({"2","128"})
-            int numberOfThreads;
+        @Param({"12", "128"})
+        int numberOfThreads;
 
-            //If this isn't Invocation, it'll break
-            @Setup(Level.Trial)
-            public void setup() {
-                testChamberHandler = new TestChamberHandler(numberOfThreads, 80);
-                testChamberHandler.initializeTestChambers();
-            }
+        //If this isn't Invocation, it'll break
+        @Setup(Level.Trial)
+        public void setup() {
+            testChamberHandler = new TestChamberHandlerConcurrent(numberOfThreads, 80);
+            testChamberHandler.initializeTestChambers();
         }
+    }
 
-        @State(Scope.Thread)
-        public static class CustomStuff {
-            @Threads(Threads.MAX)
-            @Benchmark
-            @BenchmarkMode(Mode.Throughput)
-            @OutputTimeUnit(TimeUnit.MICROSECONDS)
-            @Fork(value = 2,warmups = 2)
-            @Warmup( iterations = 3, time = 2)
-            @Measurement(iterations = 4)
-            public void testCustomObjects(CustomObject co, Blackhole blackhole) {
-                co.testChamberHandler.start();
+    @State(Scope.Thread)
+    public static class LinkedListStuff {
+        @Threads(Threads.MAX)
+        @Benchmark
+        @BenchmarkMode(Mode.Throughput)
+        @OutputTimeUnit(TimeUnit.MICROSECONDS)
+        @Fork(value = 2,warmups = 2)
+        @Warmup( iterations = 3, time = 2)
+        @Measurement(iterations = 4)
+        public void runLinkedList(CustomObject co) {
+            co.testChamberHandler.start();
 
-                try {
-                    co.testChamberHandler.awaitDone();
-                } catch (InterruptedException e) {
-                    System.out.println("Bad");
-                }
+//            try {
+//                co.testChamberHandler.awaitDone();
+//            } catch (InterruptedException e) {
+//                System.out.println("Bad");
+//            }
 
-                for(Worker worker : co.testChamberHandler.workers) {
-                    blackhole.consume(worker.dumpingGrounds);
-                }
-
-                blackhole.consume(co.testChamberHandler.head);
-                blackhole.consume(co.testChamberHandler.idList);
-            }
+//            for(Worker worker : co.testChamberHandler.workers) {
+//                blackhole.consume(worker.dumpingGrounds);
+//            }
+//
+//            blackhole.consume(co.testChamberHandler.head);
+//            blackhole.consume(co.testChamberHandler.idList);
         }
+    }
 
 
-        @State(Scope.Thread)
-        public static class ConcurrentStuff {
-            @Threads(Threads.MAX)
-            @Benchmark
-            @BenchmarkMode(Mode.Throughput)
-            @OutputTimeUnit(TimeUnit.MICROSECONDS)
-            @Fork(value = 2,warmups = 2)
-            @Warmup( iterations = 3, time = 2)
-            @Measurement(iterations = 4)
-            public void testConcurrentObjects(ConcurrentObject co, Blackhole blackhole) {
+    @State(Scope.Thread)
+    public static class ConcurrentStuff {
+        @Threads(Threads.MAX)
+        @Benchmark
+        @BenchmarkMode(Mode.Throughput)
+        @OutputTimeUnit(TimeUnit.MICROSECONDS)
+        @Fork(value = 2,warmups = 2)
+        @Warmup( iterations = 3, time = 2)
+        @Measurement(iterations = 4)
+        public void runConcurrentObjects(ConcurrentObject co, Blackhole blackhole) {
 
 
-                co.testChamberHandler.start();
+            co.testChamberHandler.start();
 
-                try {
-                    co.testChamberHandler.awaitDone();
-                } catch (InterruptedException e) {
-                    System.out.println("Bad");
-                }
-
-                for(WorkerConcurrent worker : co.testChamberHandler.workers) {
-                    blackhole.consume(worker.dumpingGrounds);
-                }
-
-                blackhole.consume(co.testChamberHandler.chamberMap);
+            try {
+                co.testChamberHandler.awaitDone();
+            } catch (InterruptedException e) {
+                System.out.println("Bad");
             }
-        }
 
+            for(WorkerConcurrent worker : co.testChamberHandler.workers) {
+                blackhole.consume(worker.dumpingGrounds);
+            }
+
+            blackhole.consume(co.testChamberHandler.chamberMap);
+        }
+    }
 
 }

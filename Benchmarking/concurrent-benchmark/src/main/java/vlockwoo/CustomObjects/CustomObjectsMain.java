@@ -1,6 +1,10 @@
 package vlockwoo.CustomObjects;
 
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 public class CustomObjectsMain {
 
 
@@ -12,15 +16,20 @@ public class CustomObjectsMain {
     public static void main(String[] args) throws Exception {
 
         System.out.println("Total threads: " + NCPUS);
-        TestChamberHandler testChamberHandler = new TestChamberHandler(NCPUS, 80);
+        TestChamberHandler testChamberHandler = new TestChamberHandler(50, 80);
+        //testChamberHandler.initializeTestChambers();
+
+        ExecutorService threadPool = Executors.newFixedThreadPool(50);
+
+        threadPool.submit(testChamberHandler::start);
+
 
         testChamberHandler.initializeTestChambers();
 
-        //Fire it up!
-        testChamberHandler.start();
-
+        threadPool.shutdown();
+        threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
         //Wait til everything's done its stuff
-        testChamberHandler.awaitDone();
+//        testChamberHandler.awaitDone();
 
         //Let's see what we've got
         printChamberStats(testChamberHandler.head, 0, -1, true);
