@@ -16,15 +16,11 @@ public class CustomObjectsMain {
     public static void main(String[] args) throws Exception {
 
         System.out.println("Total threads: " + NCPUS);
-        TestChamberHandler testChamberHandler = new TestChamberHandler(50, 80);
-        //testChamberHandler.initializeTestChambers();
+        TestChamberHandler testChamberHandler = new TestChamberHandler(128, 80, 1000);
 
-        ExecutorService threadPool = Executors.newFixedThreadPool(50);
+        ExecutorService threadPool = Executors.newFixedThreadPool(128);
 
         threadPool.submit(testChamberHandler::start);
-
-
-        testChamberHandler.initializeTestChambers();
 
         threadPool.shutdown();
         threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
@@ -95,7 +91,7 @@ public class CustomObjectsMain {
         System.out.println("----------");
 
         System.out.println("PERCENT WRITES: " + (((double)totalWrites / (double)totalOps) * 100) + "%");
-        System.out.println("PERCENT WRITES: " + (((double)totalReads / (double)totalOps) * 100) + "%");
+        System.out.println("PERCENT READS: " + (((double)totalReads / (double)totalOps) * 100) + "%");
     }
 
 }

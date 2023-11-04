@@ -1,6 +1,9 @@
 package vlockwoo.ConcurrentObjects;
 
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class ConcurrentObjectsMain {
 
@@ -13,13 +16,13 @@ public class ConcurrentObjectsMain {
     public static void main(String[] args) throws Exception {
 
         //System.out.println("Total threads: " + NCPUS);
-        TestChamberHandlerConcurrent testChamberHandler = new TestChamberHandlerConcurrent(80);
+        TestChamberHandlerConcurrent testChamberHandler = new TestChamberHandlerConcurrent(50, 80, 100);
+        ExecutorService threadPool = Executors.newFixedThreadPool(50);
 
-        testChamberHandler.initializeTestChambers();
+        threadPool.submit(testChamberHandler::start);
 
-        testChamberHandler.start();
-
-        testChamberHandler.awaitDone();
+        threadPool.shutdown();
+        threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
 
         printChamberStats(testChamberHandler);
         printWorkerStats(testChamberHandler);

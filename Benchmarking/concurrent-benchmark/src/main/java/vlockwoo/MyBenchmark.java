@@ -55,13 +55,12 @@ public class MyBenchmark {
     public static class CustomObject {
         TestChamberHandler testChamberHandler;
 
-        @Param({"12", "128"})
-        int numberOfThreads;
+        @Param({"2", "12"})
+        int numWorkers;
 
         @Setup(Level.Trial)
         public void setup() {
-            testChamberHandler = new TestChamberHandler(numberOfThreads, 80);
-            testChamberHandler.initializeTestChambers();
+            testChamberHandler = new TestChamberHandler(numWorkers, 80, 100);
         }
     }
 
@@ -70,19 +69,33 @@ public class MyBenchmark {
     public static class ConcurrentObject {
         TestChamberHandlerConcurrent testChamberHandler;
 
-        @Param({"12", "128"})
-        int numberOfThreads;
+        @Param({"2", "12"})
+        int numWorkers;
 
         //If this isn't Invocation, it'll break
         @Setup(Level.Trial)
         public void setup() {
-            testChamberHandler = new TestChamberHandlerConcurrent(numberOfThreads, 80);
-            testChamberHandler.initializeTestChambers();
+            testChamberHandler = new TestChamberHandlerConcurrent(numWorkers, 80, 100);
         }
     }
 
     @State(Scope.Thread)
     public static class LinkedListStuff {
+        @Threads(2)
+        @Benchmark
+        @BenchmarkMode(Mode.Throughput)
+        @OutputTimeUnit(TimeUnit.MICROSECONDS)
+        @Fork(value = 2,warmups = 2)
+        @Warmup( iterations = 3, time = 2)
+        @Measurement(iterations = 4)
+        public void runLinkedList2(CustomObject co, Blackhole blackhole) {
+            co.testChamberHandler.start();
+
+            for(Worker worker : co.testChamberHandler.workers) {
+                blackhole.consume(worker.dumpingGrounds);
+            }
+        }
+
         @Threads(Threads.MAX)
         @Benchmark
         @BenchmarkMode(Mode.Throughput)
@@ -90,27 +103,33 @@ public class MyBenchmark {
         @Fork(value = 2,warmups = 2)
         @Warmup( iterations = 3, time = 2)
         @Measurement(iterations = 4)
-        public void runLinkedList(CustomObject co) {
+        public void runLinkedListMax(CustomObject co, Blackhole blackhole) {
             co.testChamberHandler.start();
 
-//            try {
-//                co.testChamberHandler.awaitDone();
-//            } catch (InterruptedException e) {
-//                System.out.println("Bad");
-//            }
-
-//            for(Worker worker : co.testChamberHandler.workers) {
-//                blackhole.consume(worker.dumpingGrounds);
-//            }
-//
-//            blackhole.consume(co.testChamberHandler.head);
-//            blackhole.consume(co.testChamberHandler.idList);
+            for(Worker worker : co.testChamberHandler.workers) {
+                blackhole.consume(worker.dumpingGrounds);
+            }
         }
     }
 
 
     @State(Scope.Thread)
     public static class ConcurrentStuff {
+        @Threads(2)
+        @Benchmark
+        @BenchmarkMode(Mode.Throughput)
+        @OutputTimeUnit(TimeUnit.MICROSECONDS)
+        @Fork(value = 2,warmups = 2)
+        @Warmup( iterations = 3, time = 2)
+        @Measurement(iterations = 4)
+        public void runConcurrentObjects2(ConcurrentObject co, Blackhole blackhole) {
+            co.testChamberHandler.start();
+
+            for(WorkerConcurrent worker : co.testChamberHandler.workers) {
+                blackhole.consume(worker.dumpingGrounds);
+            }
+        }
+
         @Threads(Threads.MAX)
         @Benchmark
         @BenchmarkMode(Mode.Throughput)
@@ -118,22 +137,12 @@ public class MyBenchmark {
         @Fork(value = 2,warmups = 2)
         @Warmup( iterations = 3, time = 2)
         @Measurement(iterations = 4)
-        public void runConcurrentObjects(ConcurrentObject co, Blackhole blackhole) {
-
-
+        public void runConcurrentObjectsMax(ConcurrentObject co, Blackhole blackhole) {
             co.testChamberHandler.start();
-
-            try {
-                co.testChamberHandler.awaitDone();
-            } catch (InterruptedException e) {
-                System.out.println("Bad");
-            }
 
             for(WorkerConcurrent worker : co.testChamberHandler.workers) {
                 blackhole.consume(worker.dumpingGrounds);
             }
-
-            blackhole.consume(co.testChamberHandler.chamberMap);
         }
     }
 

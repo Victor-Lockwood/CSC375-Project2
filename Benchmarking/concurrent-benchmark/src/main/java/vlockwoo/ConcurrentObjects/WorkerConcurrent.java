@@ -16,14 +16,16 @@ public class WorkerConcurrent implements Runnable {
 
     final int PERCENT_READS;
 
-
     //Just so our reads don't get washed away
     public long dumpingGrounds = 0;
+
+    final int MAX_CHAMBERS;
 
     public WorkerConcurrent(TestChamberHandlerConcurrent chamberHandler) {
         this.chamberHandler = chamberHandler;
         this.PERCENT_READS = this.chamberHandler.PERCENT_READS;
-        MAX_WRITES = (int) Math.floor((this.chamberHandler.MAX_ID - (this.chamberHandler.NUM_INITIAL_CHAMBERS + 1)) / this.chamberHandler.workers.length);
+        this.MAX_CHAMBERS = this.chamberHandler.MAX_CHAMBERS;
+        MAX_WRITES = (int) Math.floor((this.MAX_CHAMBERS - (this.chamberHandler.NUM_INITIAL_CHAMBERS + 1)) / this.chamberHandler.workers.length);
     }
 
     public void run() {
@@ -43,7 +45,7 @@ public class WorkerConcurrent implements Runnable {
 
             isWrite = ThreadLocalRandom.current().nextInt(100) >= this.PERCENT_READS;
         }
-        chamberHandler.threadFinished();
+
     }
 
     //***** READ CODE *****

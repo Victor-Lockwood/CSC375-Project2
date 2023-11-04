@@ -15,11 +15,13 @@ public class TestChamberHandlerConcurrent {
     //Progress should be out of 100.
     final int MAX_PROGRESS = 100;
 
-    final int MAX_ID = 101;
+    final int MAX_ID = 1000;
 
     final int NUM_INITIAL_CHAMBERS = 10;
 
     final int PERCENT_READS;
+
+    final int MAX_CHAMBERS;
 
     public final ConcurrentHashMap<UUID, TestChamberConcurrent> chamberMap;
 
@@ -30,31 +32,13 @@ public class TestChamberHandlerConcurrent {
 
     public final WorkerConcurrent[] workers;
 
-    final CountDownLatch finished;
 
-    public TestChamberHandlerConcurrent(int percentReads) {
+    public TestChamberHandlerConcurrent(int suggestedNumberOfWorkers, int percentReads, int maxChambers) {
 
-
-        this.PERCENT_READS = percentReads;
-        int ncpus = Runtime.getRuntime().availableProcessors();
-        int numberOfWorkers = ncpus;
-
-
-        this.workers = new WorkerConcurrent[numberOfWorkers];
-        this.finished = new CountDownLatch(numberOfWorkers);
-
-        for(int i = 0; i<numberOfWorkers; i++) {
-            WorkerConcurrent worker = new WorkerConcurrent(this);
-            this.workers[i] = worker;
-        }
-
-        this.chamberMap = new ConcurrentHashMap<>(NUM_INITIAL_CHAMBERS + (this.workers[0].MAX_WRITES * this.workers.length));
-    }
-
-    public TestChamberHandlerConcurrent(int suggestedNumberOfWorkers, int percentReads) {
-
+        this.MAX_CHAMBERS = maxChambers;
 
         this.PERCENT_READS = percentReads;
+
         int ncpus = Runtime.getRuntime().availableProcessors();
         int numberOfWorkers = suggestedNumberOfWorkers;
 
@@ -64,7 +48,6 @@ public class TestChamberHandlerConcurrent {
 
 
         this.workers = new WorkerConcurrent[numberOfWorkers];
-        this.finished = new CountDownLatch(numberOfWorkers);
 
         for(int i = 0; i<numberOfWorkers; i++) {
             WorkerConcurrent worker = new WorkerConcurrent(this);
@@ -72,6 +55,7 @@ public class TestChamberHandlerConcurrent {
         }
 
         this.chamberMap = new ConcurrentHashMap<>(NUM_INITIAL_CHAMBERS + (this.workers[0].MAX_WRITES * this.workers.length));
+        this.initializeTestChambers();
     }
 
     /**
@@ -83,24 +67,12 @@ public class TestChamberHandlerConcurrent {
         }
     }
 
-    /**
-     * Decrement our countdown latch.
-     */
-    public void threadFinished() {
-        finished.countDown();
-    }
+
 
     /**
      * Close up shop.
      */
 
-    /**
-     * Wait til the countdown latch has released then the code calling this can resume.
-     * @throws InterruptedException
-     */
-    public void awaitDone() throws InterruptedException {
-        finished.await();
-    }
 
     /**
      * Create a test chamber using random data.

@@ -18,13 +18,16 @@ public class Worker implements Runnable {
 
     final int PERCENT_READS;
 
+    final int MAX_CHAMBERS;
+
     //Just so our reads don't get washed away
     public long dumpingGrounds = 0;
 
     public Worker(TestChamberHandler chamberHandler) {
         this.chamberHandler = chamberHandler;
         this.PERCENT_READS = this.chamberHandler.PERCENT_READS;
-        MAX_WRITES = (int) Math.floor((this.chamberHandler.MAX_ID - (this.chamberHandler.NUM_INITIAL_CHAMBERS + 1)) / this.chamberHandler.workers.length);
+        this.MAX_CHAMBERS = this.chamberHandler.MAX_CHAMBERS;
+        MAX_WRITES = (int) Math.floor((MAX_CHAMBERS - (this.chamberHandler.NUM_INITIAL_CHAMBERS + 1)) / this.chamberHandler.workers.length);
 
 //        for(int i = 0; i < MAX_WRITES; i++) {
 //            TestChamber testChamberToAdd = chamberHandler.generateRandomTestChamber(false);
