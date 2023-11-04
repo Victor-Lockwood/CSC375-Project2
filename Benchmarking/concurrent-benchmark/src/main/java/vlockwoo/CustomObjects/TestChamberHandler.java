@@ -73,7 +73,7 @@ public class TestChamberHandler {
      */
     public void start() {
         for(Worker worker : workers) {
-            worker.start();
+            worker.run();
         }
     }
 
@@ -82,15 +82,6 @@ public class TestChamberHandler {
      */
     public void threadFinished() {
         finished.countDown();
-    }
-
-    /**
-     * Close up shop.
-     */
-    public void shutdown() {
-        for(Worker worker : workers) {
-            worker.interrupt();
-        }
     }
 
     /**

@@ -8,12 +8,12 @@ public class ConcurrentObjectsMain {
     /**
      * Total number of CPUs
      */
-    static final int NCPUS = Runtime.getRuntime().availableProcessors();
+    //static final int NCPUS = Runtime.getRuntime().availableProcessors();
 
     public static void main(String[] args) throws Exception {
 
-        System.out.println("Total threads: " + NCPUS);
-        TestChamberHandlerConcurrent testChamberHandler = new TestChamberHandlerConcurrent(NCPUS, 80);
+        //System.out.println("Total threads: " + NCPUS);
+        TestChamberHandlerConcurrent testChamberHandler = new TestChamberHandlerConcurrent(80);
 
         testChamberHandler.initializeTestChambers();
 

@@ -23,7 +23,7 @@ public class CustomObjectsMain {
         testChamberHandler.awaitDone();
 
         //Let's see what we've got
-        printChamberStats(testChamberHandler.head, 0);
+        printChamberStats(testChamberHandler.head, 0, -1, true);
         printWorkerStats(testChamberHandler);
 
     }
@@ -32,8 +32,9 @@ public class CustomObjectsMain {
      * Prints stats down the linked list of test chambers starting at the given chamber.
      * @param currentChamber The TestChamber to start with.
      */
-    public static void printChamberStats(TestChamber currentChamber, int counter) {
+    public static void printChamberStats(TestChamber currentChamber, int counter, int previousId, boolean inOrder) {
         counter++;
+
         System.out.println(
                 "COUNT: " + counter + "\n" +
                 "Generated test chamber with following data\n" +
@@ -44,8 +45,15 @@ public class CustomObjectsMain {
                         "Test Completion: " + currentChamber.testCompletionStatus + "%\n"
         );
 
+        if(currentChamber.testSubjectId < previousId) {
+            inOrder = false;
+        }
+
+        previousId = currentChamber.testSubjectId;
+        System.out.println("In order: " + inOrder + "\n");
+
         if (currentChamber.nextChamber != null)
-            printChamberStats(currentChamber.nextChamber, counter);
+            printChamberStats(currentChamber.nextChamber, counter, previousId, inOrder);
 
     }
 

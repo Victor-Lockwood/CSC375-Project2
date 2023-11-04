@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class WorkerConcurrent extends Thread {
+public class WorkerConcurrent implements Runnable {
     final TestChamberHandlerConcurrent chamberHandler;
 
     public int completedWrites = 0;
@@ -16,6 +16,7 @@ public class WorkerConcurrent extends Thread {
 
     final int PERCENT_READS;
 
+    List<TestChamberConcurrent> testChamberPool = new ArrayList<>();
 
     //Just so our reads don't get washed away
     public long dumpingGrounds = 0;
@@ -23,7 +24,12 @@ public class WorkerConcurrent extends Thread {
     public WorkerConcurrent(TestChamberHandlerConcurrent chamberHandler) {
         this.chamberHandler = chamberHandler;
         this.PERCENT_READS = this.chamberHandler.PERCENT_READS;
-        MAX_WRITES = 100 - this.chamberHandler.PERCENT_READS;
+        MAX_WRITES = (int) Math.floor((this.chamberHandler.MAX_ID - (this.chamberHandler.NUM_INITIAL_CHAMBERS + 1)) / this.chamberHandler.workers.length);
+
+        for(int i = 0; i < MAX_WRITES; i++) {
+            TestChamberConcurrent testChamberToAdd = chamberHandler.generateRandomTestChamber();
+            testChamberPool.add(testChamberToAdd);
+        }
     }
 
     public void run() {
@@ -31,7 +37,7 @@ public class WorkerConcurrent extends Thread {
 
         while((completedWrites + completedReads) < 100) {
 
-            if(isWrite && (completedWrites < MAX_WRITES)) {
+            if(isWrite && (completedWrites < MAX_WRITES) && !testChamberPool.isEmpty()) {
                 createAndInsertChamber();
                 completedWrites++;
             } else {
@@ -66,7 +72,8 @@ public class WorkerConcurrent extends Thread {
 
     //***** WRITE CODE *****
     private void createAndInsertChamber() {
-        TestChamberConcurrent testChamberToAdd = chamberHandler.generateRandomTestChamber();
+        TestChamberConcurrent testChamberToAdd = testChamberPool.get(ThreadLocalRandom.current().nextInt(testChamberPool.size()));
+        testChamberPool.remove(testChamberToAdd);
 
         chamberHandler.chamberMap.put(testChamberToAdd.testSubjectId, testChamberToAdd);
     }

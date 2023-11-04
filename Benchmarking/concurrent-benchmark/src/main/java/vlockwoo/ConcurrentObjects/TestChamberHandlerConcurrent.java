@@ -36,8 +36,8 @@ public class TestChamberHandlerConcurrent {
 
 
         this.PERCENT_READS = percentReads;
-        //int ncpus = Runtime.getRuntime().availableProcessors();
-        int numberOfWorkers = 12;  //ncpus;
+        int ncpus = Runtime.getRuntime().availableProcessors();
+        int numberOfWorkers = ncpus;
 
 
         this.workers = new WorkerConcurrent[numberOfWorkers];
@@ -79,7 +79,7 @@ public class TestChamberHandlerConcurrent {
      */
     public void start() {
         for(WorkerConcurrent worker : workers) {
-            worker.start();
+            worker.run();
         }
     }
 
@@ -93,11 +93,6 @@ public class TestChamberHandlerConcurrent {
     /**
      * Close up shop.
      */
-    public void shutdown() {
-        for(WorkerConcurrent worker : workers) {
-            worker.interrupt();
-        }
-    }
 
     /**
      * Wait til the countdown latch has released then the code calling this can resume.

@@ -50,25 +50,25 @@ public class MyBenchmark {
     //for various reasons, but I have a better understanding of what a lot of the functionality means due to her example.
     //Check out her repo here: https://github.com/Kayyali78/JMH_Perf_Testing/
     //I referenced this tutorial as well: https://jenkov.com/tutorials/java-performance/jmh.html
-    public static class CustomObjectBenches {
+
 
         //Setup stuff for testing ConcurrentHashMap
-        @State(Scope.Thread)
+        @State(Scope.Benchmark)
         public static class ConcurrentObject {
             TestChamberHandlerConcurrent testChamberHandler;
 
-            @Param({"12", "128"})
+            @Param({"2", "128"})
             int numberOfThreads;
 
             //If this isn't Invocation, it'll break
-            @Setup(Level.Invocation)
+            @Setup(Level.Trial)
             public void setup() {
-                testChamberHandler = new TestChamberHandlerConcurrent(numberOfThreads, 80);
+                testChamberHandler = new TestChamberHandlerConcurrent(numberOfThreads, 100);
                 testChamberHandler.initializeTestChambers();
             }
         }
 
-        @State(Scope.Thread)
+        @State(Scope.Benchmark)
         public static class CustomObject {
             TestChamberHandler testChamberHandler;
 
@@ -76,7 +76,7 @@ public class MyBenchmark {
             int numberOfThreads;
 
             //If this isn't Invocation, it'll break
-            @Setup(Level.Invocation)
+            @Setup(Level.Trial)
             public void setup() {
                 testChamberHandler = new TestChamberHandler(numberOfThreads, 80);
                 testChamberHandler.initializeTestChambers();
@@ -88,7 +88,7 @@ public class MyBenchmark {
             @Threads(Threads.MAX)
             @Benchmark
             @BenchmarkMode(Mode.Throughput)
-            @OutputTimeUnit(TimeUnit.SECONDS)
+            @OutputTimeUnit(TimeUnit.MICROSECONDS)
             @Fork(value = 2,warmups = 2)
             @Warmup( iterations = 3, time = 2)
             @Measurement(iterations = 4)
@@ -110,16 +110,19 @@ public class MyBenchmark {
             }
         }
 
+
         @State(Scope.Thread)
         public static class ConcurrentStuff {
             @Threads(Threads.MAX)
             @Benchmark
             @BenchmarkMode(Mode.Throughput)
-            @OutputTimeUnit(TimeUnit.SECONDS)
+            @OutputTimeUnit(TimeUnit.MICROSECONDS)
             @Fork(value = 2,warmups = 2)
             @Warmup( iterations = 3, time = 2)
             @Measurement(iterations = 4)
             public void testConcurrentObjects(ConcurrentObject co, Blackhole blackhole) {
+
+
                 co.testChamberHandler.start();
 
                 try {
@@ -136,6 +139,5 @@ public class MyBenchmark {
             }
         }
 
-    }
 
 }

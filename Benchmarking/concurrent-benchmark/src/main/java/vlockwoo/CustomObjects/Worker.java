@@ -1,8 +1,12 @@
 package vlockwoo.CustomObjects;
 
+import vlockwoo.ConcurrentObjects.TestChamberConcurrent;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class Worker extends Thread {
+public class Worker implements Runnable {
 
     final TestChamberHandler chamberHandler;
 
@@ -14,6 +18,8 @@ public class Worker extends Thread {
 
     final int PERCENT_READS;
 
+    List<TestChamber> testChamberPool = new ArrayList<>();
+
     //Just so our reads don't get washed away
     public long dumpingGrounds = 0;
 
@@ -21,6 +27,11 @@ public class Worker extends Thread {
         this.chamberHandler = chamberHandler;
         this.PERCENT_READS = this.chamberHandler.PERCENT_READS;
         MAX_WRITES = (int) Math.floor((this.chamberHandler.MAX_ID - (this.chamberHandler.NUM_INITIAL_CHAMBERS + 1)) / this.chamberHandler.workers.length);
+
+        for(int i = 0; i < MAX_WRITES; i++) {
+            TestChamber testChamberToAdd = chamberHandler.generateRandomTestChamber(false);
+            testChamberPool.add(testChamberToAdd);
+        }
     }
 
     public void run() {
@@ -81,7 +92,8 @@ public class Worker extends Thread {
      */
     private void createAndInsertChamber() {
         this.chamberHandler.head.lock.writeLock();
-        TestChamber testChamberToAdd = chamberHandler.generateRandomTestChamber(false);
+        TestChamber testChamberToAdd = testChamberPool.get(ThreadLocalRandom.current().nextInt(testChamberPool.size()));
+        testChamberPool.remove(testChamberToAdd);
         //testChamberToAdd.lock.lock();
 
         if(this.chamberHandler.head.nextChamber == null) {
