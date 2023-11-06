@@ -23,11 +23,14 @@ public class Worker implements Runnable {
     //Just so our reads don't get washed away
     public long dumpingGrounds = 0;
 
+    public ArrayList<Integer> localIdList;
+
     public Worker(TestChamberHandler chamberHandler) {
         this.chamberHandler = chamberHandler;
         this.PERCENT_READS = this.chamberHandler.PERCENT_READS;
         this.MAX_CHAMBERS = this.chamberHandler.MAX_CHAMBERS;
         MAX_WRITES = (int) Math.floor((MAX_CHAMBERS - (this.chamberHandler.NUM_INITIAL_CHAMBERS + 1)) / this.chamberHandler.workers.length);
+        this.localIdList = chamberHandler.idList;
 
 //        for(int i = 0; i < MAX_WRITES; i++) {
 //            TestChamber testChamberToAdd = chamberHandler.generateRandomTestChamber(false);
@@ -44,7 +47,8 @@ public class Worker implements Runnable {
                 createAndInsertChamber();
                 completedWrites++;
             } else {
-                int chamberId = ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE);
+                int chamberId =  localIdList.get(ThreadLocalRandom.current().nextInt(localIdList.size() -1));
+
                 traverseList(chamberId);
                 completedReads++;
             }
@@ -94,6 +98,7 @@ public class Worker implements Runnable {
     private void createAndInsertChamber() {
         this.chamberHandler.head.lock.writeLock();
         TestChamber testChamberToAdd = chamberHandler.generateRandomTestChamber(false);
+        localIdList = chamberHandler.idList; //Doesn't need to have THE latest, just A latest copy so we have more to read
         //testChamberPool.remove(testChamberToAdd);
         //testChamberToAdd.lock.lock();
 

@@ -16,11 +16,17 @@ public class CustomObjectsMain {
     public static void main(String[] args) throws Exception {
 
         System.out.println("Total threads: " + NCPUS);
+
+        //Referred to Scarlett Weeks for thread pool code
         TestChamberHandler testChamberHandler = new TestChamberHandler(128, 80, 1000);
 
         ExecutorService threadPool = Executors.newFixedThreadPool(128);
 
-        threadPool.submit(testChamberHandler::start);
+        for (int i=0;i<128;i++){
+            threadPool.submit(() -> {
+                testChamberHandler.start();
+            });
+        };
 
         threadPool.shutdown();
         threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);

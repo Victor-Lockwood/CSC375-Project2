@@ -81,20 +81,20 @@ public class MyBenchmark {
 
     @State(Scope.Thread)
     public static class LinkedListStuff {
-        @Threads(2)
-        @Benchmark
-        @BenchmarkMode(Mode.Throughput)
-        @OutputTimeUnit(TimeUnit.MICROSECONDS)
-        @Fork(value = 2,warmups = 2)
-        @Warmup( iterations = 3, time = 2)
-        @Measurement(iterations = 4)
-        public void runLinkedList2(CustomObject co, Blackhole blackhole) {
-            co.testChamberHandler.start();
-
-            for(Worker worker : co.testChamberHandler.workers) {
-                blackhole.consume(worker.dumpingGrounds);
-            }
-        }
+//        @Threads(2)
+//        @Benchmark
+//        @BenchmarkMode(Mode.Throughput)
+//        @OutputTimeUnit(TimeUnit.MICROSECONDS)
+//        @Fork(value = 2,warmups = 2)
+//        @Warmup( iterations = 3, time = 2)
+//        @Measurement(iterations = 4)
+//        public void runLinkedList2(CustomObject co, Blackhole blackhole) {
+//            co.testChamberHandler.start();
+//
+//            for(Worker worker : co.testChamberHandler.workers) {
+//                blackhole.consume(worker.dumpingGrounds);
+//            }
+//        }
 
         @Threads(Threads.MAX)
         @Benchmark
